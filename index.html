@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quran Studio — Video Generator</title>
+  <meta name="description" content="Generate beautiful Quran verse videos with Arabic text and English translation, synced to recitation audio.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #0a0a0a;
+      --card-bg:   #111111;
+      --gold:      #c9a84c;
+      --gold-dim:  #a07828;
+      --gold-glow: rgba(201,168,76,0.18);
+      --border:    rgba(201,168,76,0.15);
+      --text:      #f0ead6;
+      --muted:     #7a7060;
+      --input-bg:  rgba(0,0,0,0.45);
+      --green:     #2ecc71;
+      --red:       #e74c3c;
+      --transition: 0.22s ease;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px 48px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* ── Islamic geometric watermark ─────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cdefs%3E%3Cpattern id='geo' x='0' y='0' width='120' height='120' patternUnits='userSpaceOnUse'%3E%3Cg fill='none' stroke='%23c9a84c' stroke-width='0.4' opacity='0.07'%3E%3Cpolygon points='60,10 110,35 110,85 60,110 10,85 10,35'/%3E%3Cpolygon points='60,30 90,45 90,75 60,90 30,75 30,45'/%3E%3Cline x1='60' y1='10' x2='60' y2='30'/%3E%3Cline x1='110' y1='35' x2='90' y2='45'/%3E%3Cline x1='110' y1='85' x2='90' y2='75'/%3E%3Cline x1='60' y1='110' x2='60' y2='90'/%3E%3Cline x1='10' y1='85' x2='30' y2='75'/%3E%3Cline x1='10' y1='35' x2='30' y2='45'/%3E%3Ccircle cx='60' cy='60' r='10'/%3E%3C/g%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23geo)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      position: relative;
+      z-index: 1;
+    }
+    .app-name {
+      font-size: 2rem;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    .app-name span { font-weight: 600; }
+    .arabic-subtitle {
+      font-family: 'Amiri', serif;
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-top: 6px;
+      direction: rtl;
+    }
+    .header-divider {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 14px auto 0;
+    }
+
+    /* ── Card ────────────────────────────────────────────────── */
+    .card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 440px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow:
+        0 0 0 1px rgba(201,168,76,0.05),
+        0 24px 60px rgba(0,0,0,0.7),
+        0 0 40px var(--gold-glow);
+      overflow: hidden;
+    }
+
+    .card-body { padding: 28px 28px 24px; }
+
+    /* ── Inputs ──────────────────────────────────────────────── */
+    .input-group { margin-bottom: 18px; }
+    .input-row { display: flex; gap: 14px; }
+    .input-row .input-group { flex: 1; }
+
+    label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--input-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      transition: var(--transition);
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+
+    .surah-hint {
+      margin-top: 6px;
+      min-height: 18px;
+      font-size: 0.78rem;
+      color: var(--gold);
+      font-style: italic;
+      opacity: 0;
+      transition: var(--transition);
+    }
+    .surah-hint.show { opacity: 1; }
+
+    /* ── Generate button ─────────────────────────────────────── */
+    .btn-generate {
+      width: 100%;
+      margin-top: 8px;
+      padding: 13px 20px;
+      background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+      border: none;
+      border-radius: 9px;
+      color: #0a0a0a;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+    }
+    .btn-generate:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(201,168,76,0.4);
+    }
+    .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.25);
+      border-top-color: #0a0a0a;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+    .btn-generate.loading .btn-spinner { display: block; }
+    .btn-generate.loading .btn-label  { opacity: 0.7; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Status area ─────────────────────────────────────────── */
+    .status-area { margin-top: 20px; display: none; flex-direction: column; gap: 12px; }
+    .status-area.visible { display: flex; }
+
+    .status-row { display: flex; align-items: center; gap: 10px; }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: pulse 1.4s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .status-dot.done  { background: var(--green); animation: none; }
+    .status-dot.error { background: var(--red);   animation: none; }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.4; transform:scale(.75); }
+    }
+    .status-msg { font-size: 0.88rem; color: #bbb; flex: 1; }
+    .status-msg.error { color: var(--red); }
+
+    .progress-wrap {
+      width: 100%; height: 3px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px; overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── Download button ─────────────────────────────────────── */
+    .btn-download {
+      width: 100%;
+      padding: 12px 20px;
+      background: transparent;
+      border: 1px solid var(--green);
+      border-radius: 9px;
+      color: var(--green);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+    }
+    .btn-download.visible { display: flex; animation: fadeUp 0.35s ease; }
+    .btn-download:hover {
+      background: rgba(46,204,113,0.08);
+      box-shadow: 0 0 20px rgba(46,204,113,0.2);
+      transform: translateY(-1px);
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(8px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    .card-divider { height: 1px; background: var(--border); margin: 0 28px; }
+    .card-footer {
+      padding: 12px 24px;
+      font-size: 0.69rem;
+      color: #3a3428;
+      text-align: center;
+      letter-spacing: 0.04em;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 480px) {
+      .card-body  { padding: 22px 18px 18px; }
+      .app-name   { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <h1 class="app-name">Quran <span>Studio</span></h1>
+    <p class="arabic-subtitle">مولد مقاطع القرآن</p>
+    <div class="header-divider"></div>
+  </header>
+
+  <main class="card" role="main">
+    <div class="card-body">
+
+      <!-- Surah -->
+      <div class="input-group">
+        <label for="inp-surah">Surah Number <span style="color:#2a2018">(1–114)</span></label>
+        <input type="number" id="inp-surah" value="2" min="1" max="114"
+               autocomplete="off" oninput="updateSurahHint()">
+        <div id="surah-hint" class="surah-hint show">Al-Baqarah</div>
+      </div>
+
+      <!-- Start / End verse -->
+      <div class="input-row">
+        <div class="input-group">
+          <label for="inp-start">Start Verse</label>
+          <input type="number" id="inp-start" value="255" min="1" autocomplete="off">
+        </div>
+        <div class="input-group">
+          <label for="inp-end">End Verse</label>
+          <input type="number" id="inp-end" value="255" min="1" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Button -->
+      <button id="gen-btn" class="btn-generate" onclick="startGenerate()">
+        <div class="btn-spinner"></div>
+        <span class="btn-label">Generate Video</span>
+      </button>
+
+      <!-- Status -->
+      <div id="status-area" class="status-area">
+        <div class="status-row">
+          <div id="status-dot" class="status-dot"></div>
+          <div id="status-msg" class="status-msg">Initializing…</div>
+        </div>
+        <div class="progress-wrap" id="progress-wrap" style="display:none">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <button id="dl-btn" class="btn-download" onclick="downloadVideo()">↓ Download MP4</button>
+      </div>
+
+    </div>
+
+    <div class="card-divider"></div>
+    <div class="card-footer">
+      Recitation: Sheikh Mishary Alafasy &nbsp;·&nbsp; Translation: Saheeh International<br>
+      If start = end, generates a single verse video
+    </div>
+  </main>
+
+<script>
+const SURAHS = {
+  1:"Al-Fatihah",2:"Al-Baqarah",3:"Ali 'Imran",4:"An-Nisa",5:"Al-Ma'idah",
+  6:"Al-An'am",7:"Al-A'raf",8:"Al-Anfal",9:"At-Tawbah",10:"Yunus",
+  11:"Hud",12:"Yusuf",13:"Ar-Ra'd",14:"Ibrahim",15:"Al-Hijr",
+  16:"An-Nahl",17:"Al-Isra",18:"Al-Kahf",19:"Maryam",20:"Ta-Ha",
+  21:"Al-Anbya",22:"Al-Hajj",23:"Al-Mu'minun",24:"An-Nur",25:"Al-Furqan",
+  26:"Ash-Shu'ara",27:"An-Naml",28:"Al-Qasas",29:"Al-'Ankabut",30:"Ar-Rum",
+  31:"Luqman",32:"As-Sajdah",33:"Al-Ahzab",34:"Saba",35:"Fatir",
+  36:"Ya-Sin",37:"As-Saffat",38:"Sad",39:"Az-Zumar",40:"Ghafir",
+  41:"Fussilat",42:"Ash-Shura",43:"Az-Zukhruf",44:"Ad-Dukhan",45:"Al-Jathiyah",
+  46:"Al-Ahqaf",47:"Muhammad",48:"Al-Fath",49:"Al-Hujurat",50:"Qaf",
+  51:"Adh-Dhariyat",52:"At-Tur",53:"An-Najm",54:"Al-Qamar",55:"Ar-Rahman",
+  56:"Al-Waqi'ah",57:"Al-Hadid",58:"Al-Mujadila",59:"Al-Hashr",60:"Al-Mumtahanah",
+  61:"As-Saf",62:"Al-Jumu'ah",63:"Al-Munafiqun",64:"At-Taghabun",65:"At-Talaq",
+  66:"At-Tahrim",67:"Al-Mulk",68:"Al-Qalam",69:"Al-Haqqah",70:"Al-Ma'arij",
+  71:"Nuh",72:"Al-Jinn",73:"Al-Muzzammil",74:"Al-Muddaththir",75:"Al-Qiyamah",
+  76:"Al-Insan",77:"Al-Mursalat",78:"An-Naba",79:"An-Nazi'at",80:"'Abasa",
+  81:"At-Takwir",82:"Al-Infitar",83:"Al-Mutaffifin",84:"Al-Inshiqaq",85:"Al-Buruj",
+  86:"At-Tariq",87:"Al-A'la",88:"Al-Ghashiyah",89:"Al-Fajr",90:"Al-Balad",
+  91:"Ash-Shams",92:"Al-Layl",93:"Ad-Duha",94:"Ash-Sharh",95:"At-Tin",
+  96:"Al-'Alaq",97:"Al-Qadr",98:"Al-Bayyinah",99:"Az-Zalzalah",100:"Al-'Adiyat",
+  101:"Al-Qari'ah",102:"At-Takathur",103:"Al-'Asr",104:"Al-Humazah",105:"Al-Fil",
+  106:"Quraysh",107:"Al-Ma'un",108:"Al-Kawthar",109:"Al-Kafirun",110:"An-Nasr",
+  111:"Al-Masad",112:"Al-Ikhlas",113:"Al-Falaq",114:"An-Nas"
+};
+
+let jobId = null;
+let pollTimer = null;
+let lastSurah = 2, lastStart = 255, lastEnd = 255;
+
+function updateSurahHint() {
+  const n    = parseInt(document.getElementById('inp-surah').value, 10);
+  const hint = document.getElementById('surah-hint');
+  const name = SURAHS[n];
+  hint.textContent = name || '';
+  hint.classList.toggle('show', !!name);
+}
+
+async function startGenerate() {
+  const surah = +document.getElementById('inp-surah').value;
+  const start = +document.getElementById('inp-start').value;
+  const end   = +document.getElementById('inp-end').value;
+  if (!surah || !start || !end) return;
+  if (start > end) { alert('Start verse must be ≤ end verse.'); return; }
+
+  lastSurah = surah; lastStart = start; lastEnd = end;
+
+  // Reset UI
+  if (pollTimer) clearInterval(pollTimer);
+  jobId = null;
+  document.getElementById('status-area').classList.add('visible');
+  document.getElementById('status-dot').className = 'status-dot';
+  document.getElementById('status-msg').className  = 'status-msg';
+  document.getElementById('status-msg').textContent = 'Initializing…';
+  document.getElementById('dl-btn').classList.remove('visible');
+  document.getElementById('progress-wrap').style.display = 'none';
+  document.getElementById('progress-bar').style.width = '0%';
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('gen-btn').classList.add('loading');
+
+  const isRange = start !== end;
+
+  try {
+    let res;
+    if (isRange) {
+      document.getElementById('progress-wrap').style.display = 'block';
+      res = await fetch('/generate-range', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ surah, start_verse: start, end_verse: end })
+      });
+    } else {
+      res = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ surah, verse: start })
+      });
+    }
+    const data = await res.json();
+    if (!data.job_id) throw new Error('No job_id returned');
+    jobId = data.job_id;
+    pollTimer = setInterval(pollStatus, 2000);
+  } catch (err) {
+    showError('Connection error — is the server running?');
+    document.getElementById('gen-btn').disabled = false;
+    document.getElementById('gen-btn').classList.remove('loading');
+  }
+}
+
+async function pollStatus() {
+  if (!jobId) return;
+  try {
+    const res  = await fetch(`/status/${jobId}`);
+    const data = await res.json();
+    const msg  = document.getElementById('status-msg');
+
+    if (data.status === 'pending') {
+      msg.textContent = 'Queued — starting shortly…';
+    } else if (data.status === 'rendering') {
+      msg.textContent = data.message || 'Rendering…';
+      if (data.total_verses > 0) {
+        const pct = Math.round((data.verse_num / data.total_verses) * 100);
+        document.getElementById('progress-bar').style.width = pct + '%';
+      }
+    } else if (data.status === 'done') {
+      clearInterval(pollTimer);
+      msg.textContent = '✓ Render complete';
+      document.getElementById('status-dot').className = 'status-dot done';
+      document.getElementById('gen-btn').disabled = false;
+      document.getElementById('gen-btn').classList.remove('loading');
+      document.getElementById('progress-bar').style.width = '100%';
+
+      const name = SURAHS[lastSurah] || `Surah ${lastSurah}`;
+      const label = lastStart === lastEnd
+        ? `↓  ${name} — Verse ${lastStart}.mp4`
+        : `↓  ${name} — Verses ${lastStart}–${lastEnd}.mp4`;
+      const dlBtn = document.getElementById('dl-btn');
+      dlBtn.textContent = label;
+      dlBtn.classList.add('visible');
+    } else if (data.status === 'error') {
+      clearInterval(pollTimer);
+      showError(data.message || 'Render failed');
+      document.getElementById('gen-btn').disabled = false;
+      document.getElementById('gen-btn').classList.remove('loading');
+    }
+  } catch (_) {}
+}
+
+function downloadVideo() {
+  if (!jobId) return;
+  const a = document.createElement('a');
+  a.href = `/download/${jobId}`;
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function showError(text) {
+  document.getElementById('status-area').classList.add('visible');
+  const msg = document.getElementById('status-msg');
+  msg.className = 'status-msg error';
+  msg.textContent = text;
+  document.getElementById('status-dot').className = 'status-dot error';
+}
+</script>
+</body>
+</html>
