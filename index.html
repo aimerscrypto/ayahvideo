@@ -20,6 +20,7 @@
       --input-bg:  rgba(0,0,0,0.45);
       --green:     #2ecc71;
       --red:       #e74c3c;
+      --amber:     #f39c12;
       --transition: 0.22s ease;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,8 +33,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 32px 16px 48px;
+      padding: 32px 16px 64px;
       position: relative;
       overflow-x: hidden;
     }
@@ -77,12 +77,52 @@
       margin: 14px auto 0;
     }
 
+    /* ── Tab Nav ─────────────────────────────────────────────── */
+    .tab-nav {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 0;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 5px;
+      margin-bottom: 18px;
+      width: 100%;
+      max-width: 480px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .tab-btn:hover { color: var(--gold-dim); }
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(160,120,40,0.25), var(--gold-glow));
+      color: var(--gold);
+      box-shadow: 0 0 14px rgba(201,168,76,0.18);
+    }
+
     /* ── Card ────────────────────────────────────────────────── */
     .card {
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 440px;
+      max-width: 480px;
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -93,7 +133,31 @@
       overflow: hidden;
     }
 
+    /* Tab panels */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
     .card-body { padding: 28px 28px 24px; }
+
+    /* ── Section headings inside card ────────────────────────── */
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.6;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
 
     /* ── Inputs ──────────────────────────────────────────────── */
     .input-group { margin-bottom: 18px; }
@@ -110,7 +174,8 @@
       margin-bottom: 8px;
     }
 
-    input[type="number"] {
+    input[type="number"],
+    select {
       width: 100%;
       padding: 11px 14px;
       background: var(--input-bg);
@@ -121,10 +186,24 @@
       font-size: 1rem;
       transition: var(--transition);
       -moz-appearance: textfield;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7060' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+    select option {
+      background: #1a1a1a;
+      color: var(--text);
     }
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
-    input[type="number"]:focus {
+    input[type="number"]:focus,
+    select:focus {
       outline: none;
       border-color: var(--gold);
       box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
@@ -180,7 +259,7 @@
     .btn-generate.loading .btn-label  { opacity: 0.7; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Status area ─────────────────────────────────────────── */
+    /* ── Single-video Status area ─────────────────────────────── */
     .status-area { margin-top: 20px; display: none; flex-direction: column; gap: 12px; }
     .status-area.visible { display: flex; }
 
@@ -210,7 +289,7 @@
       height: 100%; width: 0%;
       background: linear-gradient(90deg, var(--gold-dim), var(--gold));
       border-radius: 99px;
-      transition: width 0.5s ease;
+      transition: width 0.6s ease-out;
     }
 
     /* ── Download button ─────────────────────────────────────── */
@@ -244,6 +323,219 @@
       to   { opacity:1; transform:translateY(0); }
     }
 
+    /* ── Orientation toggle ──────────────────────────────────── */
+    .orientation-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .btn-orient {
+      flex: 1;
+      padding: 10px 12px;
+      background: var(--input-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: border-color var(--transition), color var(--transition), box-shadow var(--transition), background var(--transition);
+      text-align: center;
+    }
+    .btn-orient:hover {
+      border-color: var(--gold-dim);
+      color: var(--gold-dim);
+    }
+    .btn-orient.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: var(--gold-glow);
+      box-shadow: 0 0 12px rgba(201,168,76,0.2);
+    }
+
+    /* ── Verses-per-video helper text ────────────────────────── */
+    .field-hint {
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-style: italic;
+      line-height: 1.4;
+    }
+
+    /* ── Batch Progress Dashboard ────────────────────────────── */
+    .batch-dashboard {
+      margin-top: 24px;
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      animation: fadeUp 0.3s ease;
+    }
+    .batch-dashboard.visible { display: flex; }
+
+    .batch-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .batch-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+    }
+    .batch-counter {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .batch-counter strong { color: var(--gold); }
+
+    /* Overall batch progress bar */
+    .batch-overall-wrap {
+      margin-bottom: 16px;
+    }
+    .batch-overall-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .batch-progress-wrap {
+      width: 100%; height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 99px; overflow: hidden;
+    }
+    .batch-progress-bar {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      border-radius: 99px;
+      transition: width 0.7s ease-out;
+    }
+
+    /* Video chunk list */
+    .chunk-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+    .chunk-list::-webkit-scrollbar { width: 4px; }
+    .chunk-list::-webkit-scrollbar-track { background: transparent; }
+    .chunk-list::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.2); border-radius: 99px; }
+
+    .chunk-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      transition: border-color 0.3s ease, background 0.3s ease;
+    }
+    .chunk-item.is-rendering {
+      border-color: rgba(201,168,76,0.25);
+      background: rgba(201,168,76,0.04);
+    }
+    .chunk-item.is-done {
+      border-color: rgba(46,204,113,0.2);
+      background: rgba(46,204,113,0.04);
+    }
+    .chunk-item.is-error {
+      border-color: rgba(231,76,60,0.25);
+      background: rgba(231,76,60,0.04);
+    }
+
+    .chunk-icon {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.75rem;
+    }
+    .chunk-icon.pending  { background: rgba(255,255,255,0.05); color: var(--muted); }
+    .chunk-icon.rendering {
+      background: rgba(201,168,76,0.12);
+      border: 1.5px solid rgba(201,168,76,0.4);
+    }
+    .chunk-icon.rendering .chunk-spin {
+      width: 10px; height: 10px;
+      border: 1.5px solid rgba(201,168,76,0.3);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .chunk-icon.done    { background: rgba(46,204,113,0.15); color: var(--green); font-size: 0.9rem; }
+    .chunk-icon.error   { background: rgba(231,76,60,0.15);  color: var(--red);   font-size: 0.9rem; }
+
+    .chunk-info { flex: 1; min-width: 0; }
+    .chunk-name {
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chunk-status-text {
+      font-size: 0.73rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .chunk-status-text.rendering { color: var(--gold); opacity: 0.8; }
+    .chunk-status-text.done   { color: var(--green); opacity: 0.75; }
+    .chunk-status-text.error  { color: var(--red); opacity: 0.85; }
+
+    .chunk-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 99px;
+      flex-shrink: 0;
+    }
+    .chunk-badge.pending   { background: rgba(255,255,255,0.05); color: var(--muted); }
+    .chunk-badge.rendering { background: rgba(201,168,76,0.15); color: var(--gold); }
+    .chunk-badge.done      { background: rgba(46,204,113,0.15); color: var(--green); }
+    .chunk-badge.error     { background: rgba(231,76,60,0.15);  color: var(--red); }
+
+    /* Batch done / error banner */
+    .batch-result {
+      margin-top: 16px;
+      padding: 13px 16px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: fadeUp 0.4s ease;
+    }
+    .batch-result.show { display: flex; }
+    .batch-result.success {
+      background: rgba(46,204,113,0.08);
+      border: 1px solid rgba(46,204,113,0.25);
+      color: var(--green);
+    }
+    .batch-result.partial {
+      background: rgba(243,156,18,0.08);
+      border: 1px solid rgba(243,156,18,0.25);
+      color: var(--amber);
+    }
+    .batch-result.fail {
+      background: rgba(231,76,60,0.08);
+      border: 1px solid rgba(231,76,60,0.2);
+      color: var(--red);
+    }
+
     /* ── Footer ──────────────────────────────────────────────── */
     .card-divider { height: 1px; background: var(--border); margin: 0 28px; }
     .card-footer {
@@ -258,6 +550,7 @@
     @media (max-width: 480px) {
       .card-body  { padding: 22px 18px 18px; }
       .app-name   { font-size: 1.5rem; }
+      .tab-btn    { font-size: 0.74rem; padding: 9px 10px; }
     }
   </style>
 </head>
@@ -269,57 +562,171 @@
     <div class="header-divider"></div>
   </header>
 
+  <!-- ── Mode tabs ──────────────────────────────────────────── -->
+  <nav class="tab-nav" role="tablist" aria-label="Mode">
+    <button id="tab-single" class="tab-btn active" role="tab" aria-selected="true"
+            onclick="switchTab('single')">
+      🎬 Single Verse
+    </button>
+    <button id="tab-bulk" class="tab-btn" role="tab" aria-selected="false"
+            onclick="switchTab('bulk')">
+      📦 Bulk Creator
+    </button>
+  </nav>
+
   <main class="card" role="main">
-    <div class="card-body">
 
-      <!-- Surah -->
-      <div class="input-group">
-        <label for="inp-surah">Surah Number <span style="color:#2a2018">(1–114)</span></label>
-        <input type="number" id="inp-surah" value="2" min="1" max="114"
-               autocomplete="off" oninput="updateSurahHint()">
-        <div id="surah-hint" class="surah-hint show">Al-Baqarah</div>
-      </div>
+    <!-- ══════════════════════════════════════════════════════════
+         TAB 1 — Single Verse
+    ══════════════════════════════════════════════════════════ -->
+    <div id="panel-single" class="tab-panel active">
+      <div class="card-body">
 
-      <!-- Start / End verse -->
-      <div class="input-row">
+        <!-- Surah -->
         <div class="input-group">
-          <label for="inp-start">Start Verse</label>
-          <input type="number" id="inp-start" value="255" min="1" autocomplete="off">
+          <label for="inp-surah">Surah Number <span style="color:#2a2018">(1–114)</span></label>
+          <input type="number" id="inp-surah" value="2" min="1" max="114"
+                 autocomplete="off" oninput="updateSurahHint()">
+          <div id="surah-hint" class="surah-hint show">Al-Baqarah</div>
         </div>
+
+        <!-- Start / End verse -->
+        <div class="input-row">
+          <div class="input-group">
+            <label for="inp-start">Start Verse</label>
+            <input type="number" id="inp-start" value="255" min="1" autocomplete="off">
+          </div>
+          <div class="input-group">
+            <label for="inp-end">End Verse</label>
+            <input type="number" id="inp-end" value="255" min="1" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Orientation toggle -->
+        <div>
+          <label>Orientation</label>
+          <div class="orientation-toggle" id="orient-toggle">
+            <button id="btn-horizontal" class="btn-orient active" onclick="setOrientation('horizontal')">🖥️ Horizontal (16:9)</button>
+            <button id="btn-vertical"   class="btn-orient"        onclick="setOrientation('vertical')"  >📱 Vertical (9:16)</button>
+          </div>
+        </div>
+
+        <!-- Button -->
+        <button id="gen-btn" class="btn-generate" onclick="startGenerate()">
+          <div class="btn-spinner"></div>
+          <span class="btn-label">Generate Video</span>
+        </button>
+
+        <!-- Status -->
+        <div id="status-area" class="status-area">
+          <div class="status-row">
+            <div id="status-dot" class="status-dot"></div>
+            <div id="status-msg" class="status-msg">Initializing…</div>
+          </div>
+          <div class="progress-wrap" id="progress-wrap" style="display:none">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+          <button id="dl-btn" class="btn-download" onclick="downloadVideo()">↓ Download MP4</button>
+        </div>
+
+      </div>
+
+      <div class="card-divider"></div>
+      <div class="card-footer">
+        Recitation: Sheikh Mishary Alafasy &nbsp;·&nbsp; Translation: Saheeh International<br>
+        If start = end, generates a single verse video
+      </div>
+    </div><!-- /panel-single -->
+
+
+    <!-- ══════════════════════════════════════════════════════════
+         TAB 2 — Bulk Creator
+    ══════════════════════════════════════════════════════════ -->
+    <div id="panel-bulk" class="tab-panel">
+      <div class="card-body">
+
+        <p class="section-label">Set Up Your Batch</p>
+
+        <!-- Surah dropdown -->
         <div class="input-group">
-          <label for="inp-end">End Verse</label>
-          <input type="number" id="inp-end" value="255" min="1" autocomplete="off">
+          <label for="bulk-surah">Which Surah?</label>
+          <select id="bulk-surah" onchange="updateBulkSurahHint()"></select>
+          <div id="bulk-surah-hint" class="surah-hint show">Al-Baqarah</div>
         </div>
+
+        <!-- Verse range -->
+        <div class="input-row">
+          <div class="input-group">
+            <label for="bulk-start">From Verse</label>
+            <input type="number" id="bulk-start" value="1" min="1" autocomplete="off">
+          </div>
+          <div class="input-group">
+            <label for="bulk-end">To Verse</label>
+            <input type="number" id="bulk-end" value="10" min="1" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Verses per video -->
+        <div class="input-group">
+          <label for="bulk-vpv">How many verses in each video?</label>
+          <input type="number" id="bulk-vpv" value="1" min="1" autocomplete="off">
+          <p class="field-hint" id="bulk-vpv-hint">Each video will contain 1 verse.</p>
+        </div>
+
+        <!-- Orientation -->
+        <div>
+          <label>Orientation</label>
+          <div class="orientation-toggle">
+            <button id="bulk-btn-h" class="btn-orient active" onclick="setBulkOrientation('horizontal')">🖥️ Horizontal (16:9)</button>
+            <button id="bulk-btn-v" class="btn-orient"        onclick="setBulkOrientation('vertical')"  >📱 Vertical (9:16)</button>
+          </div>
+        </div>
+
+        <!-- Big gold button -->
+        <button id="bulk-gen-btn" class="btn-generate" onclick="startBulkGenerate()">
+          <div class="btn-spinner"></div>
+          <span class="btn-label">✦ Generate Bulk Videos</span>
+        </button>
+
+        <!-- ── Batch Progress Dashboard ── -->
+        <div id="batch-dashboard" class="batch-dashboard">
+
+          <div class="batch-header">
+            <span class="batch-title">Batch Progress</span>
+            <span class="batch-counter" id="batch-counter">—</span>
+          </div>
+
+          <div class="batch-overall-wrap">
+            <div class="batch-overall-label">
+              <span id="batch-overall-label-text">Getting started…</span>
+              <span id="batch-pct-label">0%</span>
+            </div>
+            <div class="batch-progress-wrap">
+              <div id="batch-progress-bar" class="batch-progress-bar"></div>
+            </div>
+          </div>
+
+          <div class="chunk-list" id="chunk-list"></div>
+
+          <div id="batch-result" class="batch-result"></div>
+
+        </div><!-- /batch-dashboard -->
+
       </div>
 
-      <!-- Button -->
-      <button id="gen-btn" class="btn-generate" onclick="startGenerate()">
-        <div class="btn-spinner"></div>
-        <span class="btn-label">Generate Video</span>
-      </button>
-
-      <!-- Status -->
-      <div id="status-area" class="status-area">
-        <div class="status-row">
-          <div id="status-dot" class="status-dot"></div>
-          <div id="status-msg" class="status-msg">Initializing…</div>
-        </div>
-        <div class="progress-wrap" id="progress-wrap" style="display:none">
-          <div id="progress-bar" class="progress-bar"></div>
-        </div>
-        <button id="dl-btn" class="btn-download" onclick="downloadVideo()">↓ Download MP4</button>
+      <div class="card-divider"></div>
+      <div class="card-footer">
+        Videos are saved inside a timestamped folder in your <strong style="color:#3a3428">output/</strong> directory.<br>
+        Recitation: Sheikh Mishary Alafasy &nbsp;·&nbsp; Translation: Saheeh International
       </div>
+    </div><!-- /panel-bulk -->
 
-    </div>
-
-    <div class="card-divider"></div>
-    <div class="card-footer">
-      Recitation: Sheikh Mishary Alafasy &nbsp;·&nbsp; Translation: Saheeh International<br>
-      If start = end, generates a single verse video
-    </div>
-  </main>
+  </main><!-- /card -->
 
 <script>
+/* ═══════════════════════════════════════════════════════════════
+   SURAH DATA
+═══════════════════════════════════════════════════════════════ */
 const SURAHS = {
   1:"Al-Fatihah",2:"Al-Baqarah",3:"Ali 'Imran",4:"An-Nisa",5:"Al-Ma'idah",
   6:"Al-An'am",7:"Al-A'raf",8:"Al-Anfal",9:"At-Tawbah",10:"Yunus",
@@ -346,9 +753,33 @@ const SURAHS = {
   111:"Al-Masad",112:"Al-Ikhlas",113:"Al-Falaq",114:"An-Nas"
 };
 
+/* ═══════════════════════════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════════════════════════ */
+function switchTab(tab) {
+  ['single','bulk'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`panel-${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`tab-${t}`).setAttribute('aria-selected', t === tab);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SINGLE VIDEO — existing logic (unchanged)
+═══════════════════════════════════════════════════════════════ */
 let jobId = null;
 let pollTimer = null;
+let fakeProgressTimer = null;
+let realPercentage = 0;
+let visualPercentage = 0;
 let lastSurah = 2, lastStart = 255, lastEnd = 255;
+let selectedOrientation = 'horizontal';
+
+function setOrientation(val) {
+  selectedOrientation = val;
+  document.getElementById('btn-horizontal').classList.toggle('active', val === 'horizontal');
+  document.getElementById('btn-vertical').classList.toggle('active', val === 'vertical');
+}
 
 function updateSurahHint() {
   const n    = parseInt(document.getElementById('inp-surah').value, 10);
@@ -367,35 +798,44 @@ async function startGenerate() {
 
   lastSurah = surah; lastStart = start; lastEnd = end;
 
-  // Reset UI
   if (pollTimer) clearInterval(pollTimer);
+  if (fakeProgressTimer) clearInterval(fakeProgressTimer);
   jobId = null;
+  realPercentage = 0;
+  visualPercentage = 0;
   document.getElementById('status-area').classList.add('visible');
   document.getElementById('status-dot').className = 'status-dot';
   document.getElementById('status-msg').className  = 'status-msg';
   document.getElementById('status-msg').textContent = 'Initializing…';
   document.getElementById('dl-btn').classList.remove('visible');
-  document.getElementById('progress-wrap').style.display = 'none';
+  document.getElementById('progress-wrap').style.display = 'block';
   document.getElementById('progress-bar').style.width = '0%';
   document.getElementById('gen-btn').disabled = true;
   document.getElementById('gen-btn').classList.add('loading');
+
+  fakeProgressTimer = setInterval(() => {
+    let targetCap = Math.min(99, realPercentage + 24);
+    if (visualPercentage < targetCap) {
+      visualPercentage += 0.2;
+      document.getElementById('progress-bar').style.width = visualPercentage + '%';
+    }
+  }, 50);
 
   const isRange = start !== end;
 
   try {
     let res;
     if (isRange) {
-      document.getElementById('progress-wrap').style.display = 'block';
       res = await fetch('/generate-range', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ surah, start_verse: start, end_verse: end })
+        body: JSON.stringify({ surah, start_verse: start, end_verse: end, orientation: selectedOrientation })
       });
     } else {
       res = await fetch('/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ surah, verse: start })
+        body: JSON.stringify({ surah, verse: start, orientation: selectedOrientation })
       });
     }
     const data = await res.json();
@@ -418,18 +858,24 @@ async function pollStatus() {
 
     if (data.status === 'pending') {
       msg.textContent = 'Queued — starting shortly…';
+      realPercentage = 0;
     } else if (data.status === 'rendering') {
-      msg.textContent = data.message || 'Rendering…';
-      if (data.total_verses > 0) {
-        const pct = Math.round((data.verse_num / data.total_verses) * 100);
-        document.getElementById('progress-bar').style.width = pct + '%';
+      msg.textContent = data.step || data.message || 'Rendering…';
+      if (data.percentage !== undefined) {
+        realPercentage = data.percentage;
+        if (visualPercentage < realPercentage) visualPercentage = realPercentage;
+      } else if (data.total_verses > 0) {
+        realPercentage = Math.round((data.verse_num / data.total_verses) * 100);
+        if (visualPercentage < realPercentage) visualPercentage = realPercentage;
       }
     } else if (data.status === 'done') {
       clearInterval(pollTimer);
-      msg.textContent = '✓ Render complete';
+      if (fakeProgressTimer) clearInterval(fakeProgressTimer);
+      msg.textContent = data.step || '✓ Render complete';
       document.getElementById('status-dot').className = 'status-dot done';
       document.getElementById('gen-btn').disabled = false;
       document.getElementById('gen-btn').classList.remove('loading');
+      visualPercentage = 100;
       document.getElementById('progress-bar').style.width = '100%';
 
       const name = SURAHS[lastSurah] || `Surah ${lastSurah}`;
@@ -441,6 +887,7 @@ async function pollStatus() {
       dlBtn.classList.add('visible');
     } else if (data.status === 'error') {
       clearInterval(pollTimer);
+      if (fakeProgressTimer) clearInterval(fakeProgressTimer);
       showError(data.message || 'Render failed');
       document.getElementById('gen-btn').disabled = false;
       document.getElementById('gen-btn').classList.remove('loading');
@@ -464,6 +911,252 @@ function showError(text) {
   msg.className = 'status-msg error';
   msg.textContent = text;
   document.getElementById('status-dot').className = 'status-dot error';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BULK CREATOR
+═══════════════════════════════════════════════════════════════ */
+let bulkOrientation = 'horizontal';
+let batchId         = null;
+let bulkPollTimer   = null;
+let bulkChunkCount  = 0; // how many chunk rows we've built in the DOM
+
+/* Populate surah dropdown */
+(function buildSurahDropdown() {
+  const sel = document.getElementById('bulk-surah');
+  for (let i = 1; i <= 114; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${i}. ${SURAHS[i]}`;
+    if (i === 2) opt.selected = true;
+    sel.appendChild(opt);
+  }
+})();
+
+/* Live hint — verses-per-video */
+document.getElementById('bulk-vpv').addEventListener('input', updateVpvHint);
+function updateVpvHint() {
+  const vpv   = +document.getElementById('bulk-vpv').value || 1;
+  const hint  = document.getElementById('bulk-vpv-hint');
+  hint.textContent = vpv === 1
+    ? 'Each video will contain 1 verse.'
+    : `Each video will contain ${vpv} verses.`;
+}
+
+function updateBulkSurahHint() {
+  const n    = +document.getElementById('bulk-surah').value;
+  const hint = document.getElementById('bulk-surah-hint');
+  hint.textContent = SURAHS[n] || '';
+  hint.classList.toggle('show', !!SURAHS[n]);
+}
+
+function setBulkOrientation(val) {
+  bulkOrientation = val;
+  document.getElementById('bulk-btn-h').classList.toggle('active', val === 'horizontal');
+  document.getElementById('bulk-btn-v').classList.toggle('active', val === 'vertical');
+}
+
+/* ── Pre-build chunk rows from a chunks array ── */
+function buildChunkRows(chunks, surahName) {
+  const list = document.getElementById('chunk-list');
+  list.innerHTML = '';
+  bulkChunkCount = chunks.length;
+  chunks.forEach((c, i) => {
+    const videoNum  = i + 1;
+    const verseLabel = c.start === c.end ? `Verse ${c.start}` : `Verses ${c.start}–${c.end}`;
+    const row = document.createElement('div');
+    row.className = 'chunk-item';
+    row.id = `chunk-row-${i}`;
+    row.innerHTML = `
+      <div class="chunk-icon pending" id="chunk-icon-${i}">
+        <span id="chunk-icon-inner-${i}">·</span>
+      </div>
+      <div class="chunk-info">
+        <div class="chunk-name">Video ${videoNum} — ${verseLabel}</div>
+        <div class="chunk-status-text" id="chunk-status-${i}">Waiting in line…</div>
+      </div>
+      <span class="chunk-badge pending" id="chunk-badge-${i}">Queued</span>
+    `;
+    list.appendChild(row);
+  });
+}
+
+/* ── Update one chunk row from backend chunk data ── */
+function updateChunkRow(i, chunk) {
+  const row    = document.getElementById(`chunk-row-${i}`);
+  const icon   = document.getElementById(`chunk-icon-${i}`);
+  const inner  = document.getElementById(`chunk-icon-inner-${i}`);
+  const status = document.getElementById(`chunk-status-${i}`);
+  const badge  = document.getElementById(`chunk-badge-${i}`);
+  if (!row) return;
+
+  const s = chunk.status;
+
+  // Row highlight
+  row.classList.remove('is-rendering','is-done','is-error');
+  if (s === 'rendering') row.classList.add('is-rendering');
+  else if (s === 'done')  row.classList.add('is-done');
+  else if (s === 'error') row.classList.add('is-error');
+
+  // Icon
+  icon.className = `chunk-icon ${s === 'pending' ? 'pending' : s}`;
+  if (s === 'pending')   { inner.textContent = '·'; inner.className = ''; }
+  else if (s === 'rendering') {
+    inner.outerHTML = `<div class="chunk-spin" id="chunk-icon-inner-${i}"></div>`;
+  }
+  else if (s === 'done')  { document.getElementById(`chunk-icon-inner-${i}`).outerHTML = `<span id="chunk-icon-inner-${i}">✓</span>`; }
+  else if (s === 'error') { document.getElementById(`chunk-icon-inner-${i}`).outerHTML = `<span id="chunk-icon-inner-${i}">✕</span>`; }
+
+  // Status text
+  status.className = `chunk-status-text ${s}`;
+  if (s === 'pending')   status.textContent = 'Waiting in line…';
+  else if (s === 'rendering') {
+    const stepText = chunk.step ? chunk.step : 'Creating…';
+    const pct = chunk.percentage !== undefined ? ` (${chunk.percentage}%)` : '';
+    status.textContent = stepText + pct;
+  }
+  else if (s === 'done')  status.textContent = 'Completed ✓';
+  else if (s === 'error') status.textContent = chunk.error ? `Error: ${chunk.error.slice(0,60)}` : 'Failed';
+
+  // Badge
+  badge.className = `chunk-badge ${s}`;
+  const BADGE_LABELS = { pending:'Queued', rendering:'Creating…', done:'Done', error:'Failed' };
+  badge.textContent = BADGE_LABELS[s] || s;
+}
+
+/* ── Update overall progress ── */
+function updateBatchOverall(data) {
+  const total     = data.total     || bulkChunkCount || 1;
+  const completed = data.completed || 0;
+  const failed    = data.failed    || 0;
+  const done      = completed + failed;
+  const pct       = Math.round((done / total) * 100);
+
+  document.getElementById('batch-counter').innerHTML =
+    `<strong>${completed}</strong> / ${total} done`;
+  document.getElementById('batch-pct-label').textContent = pct + '%';
+  document.getElementById('batch-progress-bar').style.width = pct + '%';
+
+  if (data.status === 'rendering' && data.current_chunk) {
+    const cc = data.current_chunk;
+    const verseLabel = cc.start === cc.end ? `verse ${cc.start}` : `verses ${cc.start}–${cc.end}`;
+    document.getElementById('batch-overall-label-text').textContent =
+      `Working on video ${cc.index} of ${total} (${verseLabel})…`;
+  } else if (data.status === 'done' || data.status === 'done_with_errors') {
+    document.getElementById('batch-overall-label-text').textContent =
+      data.status === 'done' ? 'All videos completed!' : `Finished with ${failed} error(s).`;
+  }
+}
+
+/* ── Show final result banner ── */
+function showBatchResult(data) {
+  const el    = document.getElementById('batch-result');
+  const total = data.total || 1;
+  const fail  = data.failed || 0;
+  const done  = data.completed || 0;
+
+  el.classList.remove('success','partial','fail');
+  el.classList.add('show');
+
+  if (fail === 0) {
+    el.className = 'batch-result show success';
+    el.innerHTML = `<span>🎉</span> All ${done} video${done > 1 ? 's' : ''} generated successfully! Check your <strong>output/bulk_batch_…</strong> folder.`;
+  } else if (done > 0) {
+    el.className = 'batch-result show partial';
+    el.innerHTML = `<span>⚠️</span> ${done} video${done > 1 ? 's' : ''} completed, ${fail} failed. Check your <strong>output/bulk_batch_…</strong> folder for the successful ones.`;
+  } else {
+    el.className = 'batch-result show fail';
+    el.innerHTML = `<span>❌</span> All ${fail} video${fail > 1 ? 's' : ''} failed to generate. Please check the server logs.`;
+  }
+}
+
+/* ── Poll bulk status ── */
+async function pollBulkStatus() {
+  if (!batchId) return;
+  try {
+    const res  = await fetch(`/bulk-status/${batchId}`);
+    const data = await res.json();
+
+    updateBatchOverall(data);
+
+    // Update each chunk row
+    if (data.chunks) {
+      data.chunks.forEach((c, i) => updateChunkRow(i, c));
+    }
+
+    // Terminal states
+    if (data.status === 'done' || data.status === 'done_with_errors') {
+      clearInterval(bulkPollTimer);
+      bulkPollTimer = null;
+      showBatchResult(data);
+      document.getElementById('bulk-gen-btn').disabled = false;
+      document.getElementById('bulk-gen-btn').classList.remove('loading');
+    }
+  } catch (_) {}
+}
+
+/* ── Kick off bulk generation ── */
+async function startBulkGenerate() {
+  const surah = +document.getElementById('bulk-surah').value;
+  const start = +document.getElementById('bulk-start').value;
+  const end   = +document.getElementById('bulk-end').value;
+  const vpv   = +document.getElementById('bulk-vpv').value || 1;
+  const surahName = SURAHS[surah] || `Surah ${surah}`;
+
+  if (!surah || !start || !end) { alert('Please fill in all fields.'); return; }
+  if (start > end) { alert('From Verse must be ≤ To Verse.'); return; }
+  if (vpv < 1)     { alert('Verses per video must be at least 1.'); return; }
+
+  // Stop previous poll if any
+  if (bulkPollTimer) { clearInterval(bulkPollTimer); bulkPollTimer = null; }
+  batchId = null;
+
+  // Pre-compute chunk list so we can draw rows immediately
+  const preChunks = [];
+  for (let v = start; v <= end; ) {
+    const chunkEnd = Math.min(v + vpv - 1, end);
+    preChunks.push({ start: v, end: chunkEnd, status: 'pending' });
+    v = chunkEnd + 1;
+  }
+
+  // Reset dashboard
+  const dashboard = document.getElementById('batch-dashboard');
+  dashboard.classList.add('visible');
+  document.getElementById('batch-result').classList.remove('show');
+  document.getElementById('batch-progress-bar').style.width = '0%';
+  document.getElementById('batch-pct-label').textContent = '0%';
+  document.getElementById('batch-counter').innerHTML = `<strong>0</strong> / ${preChunks.length} done`;
+  document.getElementById('batch-overall-label-text').textContent = 'Getting started…';
+  buildChunkRows(preChunks, surahName);
+
+  // Disable button
+  document.getElementById('bulk-gen-btn').disabled = true;
+  document.getElementById('bulk-gen-btn').classList.add('loading');
+
+  // POST to backend
+  try {
+    const res = await fetch('/generate-bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        surah,
+        start_verse: start,
+        end_verse: end,
+        verses_per_video: vpv,
+        orientation: bulkOrientation
+      })
+    });
+    const data = await res.json();
+    if (!data.batch_id) throw new Error('No batch_id returned');
+    batchId = data.batch_id;
+    bulkPollTimer = setInterval(pollBulkStatus, 2000);
+  } catch (err) {
+    document.getElementById('batch-result').className = 'batch-result show fail';
+    document.getElementById('batch-result').innerHTML =
+      `<span>❌</span> Could not connect to the server. Is it running?`;
+    document.getElementById('bulk-gen-btn').disabled = false;
+    document.getElementById('bulk-gen-btn').classList.remove('loading');
+  }
 }
 </script>
 </body>
