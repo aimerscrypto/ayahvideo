@@ -419,6 +419,15 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
                     "start": start_ms,
                     "end": end_ms
                 })
+    # Deduplicate: keep first occurrence of each word position
+    seen_positions = {}
+    for ws in word_segments:
+        if ws["idx"] not in seen_positions:
+            seen_positions[ws["idx"]] = ws
+    word_segments = list(seen_positions.values())
+
+    # Sort by Quranic word position, not by timestamp
+    word_segments.sort(key=lambda w: w["idx"])
 
     aggregated_words = []
     current_word = None

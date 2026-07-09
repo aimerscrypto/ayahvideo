@@ -4,6 +4,8 @@ from pydantic import BaseModel
 import uuid
 import os
 from datetime import datetime
+import json
+import requests
 from generate_video import generate_verse_video, generate_range_video, generate_verse_video_to_dir
 
 app = FastAPI(title="Quran Video Generator")
@@ -13,6 +15,9 @@ jobs = {}
 # Global tracker for bulk batch jobs.
 # Structure: { batch_id: { "status", "total", "completed", "failed", "batch_dir", "chunks", "videos" } }
 bulk_batches = {}
+
+class DiscoverRequest(BaseModel):
+    query: str
 
 class GenerateRequest(BaseModel):
     surah: int
@@ -195,6 +200,150 @@ def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_ve
 async def read_index():
     with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
+
+def query_llm(prompt: str) -> str:
+    configs = []
+    fw_key = os.environ.get("FIREWORKS_API_KEY")
+    if fw_key:
+        configs.append({
+            "label": "Fireworks",
+            "url": "https://api.fireworks.ai/inference/v1/chat/completions",
+            "key": fw_key,
+            "model": "accounts/fireworks/models/minimax-m3",
+            "timeout": 30
+        })
+    or_key = os.environ.get("OPENROUTER_API_KEY")
+    if or_key:
+        configs.append({
+            "label": "OpenRouter",
+            "url": "https://openrouter.ai/api/v1/chat/completions",
+            "key": or_key,
+            "model": "google/gemma-3-27b-it:free",
+            "timeout": 30
+        })
+
+    if not configs:
+        print("No API keys found for Fireworks or OpenRouter.")
+        raise RuntimeError("No configured LLM endpoints are available.")
+
+    last_err = None
+    for cfg in configs:
+        print(f"Attempting discovery with {cfg['label']} ({cfg['model']})...")
+        try:
+            resp = requests.post(
+                cfg["url"],
+                headers={"Authorization": f"Bearer {cfg['key']}"},
+                json={
+                    "model": cfg["model"],
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 200
+                },
+                timeout=cfg["timeout"]
+            )
+            if resp.status_code == 200:
+                choices = resp.json().get("choices") or []
+                if choices:
+                    content = choices[0].get("message", {}).get("content")
+                    if content and content.strip():
+                        return content
+                    else:
+                        print(f"Empty content from {cfg['label']}")
+                else:
+                    print(f"No choices returned from {cfg['label']}")
+            else:
+                print(f"{cfg['label']} returned status {resp.status_code}: {resp.text}")
+                last_err = f"Status {resp.status_code}"
+        except Exception as e:
+            print(f"Error calling {cfg['label']}: {e}")
+            last_err = str(e)
+    raise RuntimeError(f"All LLM configurations failed. Last error: {last_err}")
+
+def parse_llm_json(raw: str):
+    raw = raw.strip()
+    if raw.startswith("```json"):
+        raw = raw[7:]
+    elif raw.startswith("```"):
+        raw = raw[3:]
+    if raw.endswith("```"):
+        raw = raw[:-3]
+    raw = raw.strip()
+    return json.loads(raw)
+
+def validate_verse(surah: int, verse: int) -> bool:
+    try:
+        url = f"https://api.quran.com/api/v4/verses/by_key/{surah}:{verse}"
+        resp = requests.get(url, timeout=10)
+        return resp.status_code == 200
+    except Exception as e:
+        print(f"Quran API validation failed: {e}")
+        return False
+
+@app.post("/discover")
+async def discover_verse(req: DiscoverRequest):
+    prompt = f"""You are a Quran scholar. A user is searching for a Quran verse.
+
+User query: "{req.query}"
+
+Task: Identify the single most relevant verse in the Quran that matches this query.
+
+Rules:
+- Return ONLY a JSON object, no markdown, no explanation outside the JSON
+- JSON format: {{"surah": <integer 1-114>, "verse": <valid integer>, "surah_name": "<english name>", "reason": "<one sentence why this verse matches>"}}
+- surah and verse must be real, existing verse numbers
+- Prefer well-known, clear verses over obscure ones
+- reason must be in English, max 15 words"""
+
+    try:
+        raw_response = query_llm(prompt)
+        parsed = None
+        surah = None
+        verse = None
+        surah_name = None
+        reason = None
+        
+        try:
+            parsed = parse_llm_json(raw_response)
+            surah = int(parsed["surah"])
+            verse = int(parsed["verse"])
+            surah_name = str(parsed["surah_name"])
+            reason = str(parsed["reason"])
+            
+            if validate_verse(surah, verse):
+                return {
+                    "surah": surah,
+                    "verse": verse,
+                    "surah_name": surah_name,
+                    "reason": reason
+                }
+            retry_msg = f"\n\nVerse {surah}:{verse} does not exist. Pick a different verse."
+        except Exception as parse_err:
+            print(f"First attempt parse/validate failed: {parse_err}")
+            retry_msg = "\n\nPrevious response was invalid. Please return a valid JSON object matching the requested schema with real surah and verse numbers."
+
+        # If it failed to parse or validate, retry once
+        retry_prompt = prompt + retry_msg
+        raw_response_retry = query_llm(retry_prompt)
+        parsed_retry = parse_llm_json(raw_response_retry)
+        surah_retry = int(parsed_retry["surah"])
+        verse_retry = int(parsed_retry["verse"])
+        surah_name_retry = str(parsed_retry["surah_name"])
+        reason_retry = str(parsed_retry["reason"])
+        
+        if validate_verse(surah_retry, verse_retry):
+            return {
+                "surah": surah_retry,
+                "verse": verse_retry,
+                "surah_name": surah_name_retry,
+                "reason": reason_retry
+            }
+            
+    except Exception as e:
+        print(f"Discover verse execution failed: {e}")
+
+    raise HTTPException(
+        status_code=422,
+        detail="Could not identify a matching verse. Please try a different query."
+    )
 
 @app.post("/generate")
 async def generate_endpoint(req: GenerateRequest, background_tasks: BackgroundTasks):

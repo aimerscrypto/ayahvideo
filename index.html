@@ -552,6 +552,56 @@
       .app-name   { font-size: 1.5rem; }
       .tab-btn    { font-size: 0.74rem; padding: 9px 10px; }
     }
+
+    textarea#discover-input {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--input-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      resize: vertical;
+      min-height: 80px;
+      transition: var(--transition);
+    }
+    textarea#discover-input:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+    .discover-verse-card {
+      background: rgba(201,168,76,0.06);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .discover-verse-ref {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+    .discover-verse-reason {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 16px;
+    }
+    .discover-arabic-preview {
+      font-family: 'Amiri', serif;
+      font-size: 1.4rem;
+      direction: rtl;
+      text-align: right;
+      color: var(--text);
+      line-height: 2;
+      margin-bottom: 20px;
+      padding: 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -562,7 +612,6 @@
     <div class="header-divider"></div>
   </header>
 
-  <!-- ── Mode tabs ──────────────────────────────────────────── -->
   <nav class="tab-nav" role="tablist" aria-label="Mode">
     <button id="tab-single" class="tab-btn active" role="tab" aria-selected="true"
             onclick="switchTab('single')">
@@ -571,6 +620,10 @@
     <button id="tab-bulk" class="tab-btn" role="tab" aria-selected="false"
             onclick="switchTab('bulk')">
       📦 Bulk Creator
+    </button>
+    <button id="tab-discover" class="tab-btn" role="tab" aria-selected="false"
+            onclick="switchTab('discover')">
+      ✦ Discover
     </button>
   </nav>
 
@@ -721,6 +774,49 @@
       </div>
     </div><!-- /panel-bulk -->
 
+    <!-- ══════════════════════════════════════════════════════════
+         TAB 3 — Discover
+    ══════════════════════════════════════════════════════════ -->
+    <div id="panel-discover" class="tab-panel">
+      <div class="card-body">
+        
+        <p class="section-label">AI VERSE DISCOVERY</p>
+        
+        <div class="input-group">
+          <textarea id="discover-input" rows="3" placeholder="e.g. verse about patience in hardship..."></textarea>
+        </div>
+        
+        <button id="discover-btn" class="btn-generate" onclick="discoverVerse()">
+          <div class="btn-spinner"></div>
+          <span id="discover-btn-label" class="btn-label">✦ Discover & Generate</span>
+        </button>
+        
+        <div id="discover-result" style="display: none;">
+          <div id="discover-card" class="discover-verse-card" style="display: none;">
+            <div id="discover-ref" class="discover-verse-ref"></div>
+            <div id="discover-reason" class="discover-verse-reason"></div>
+            <div id="discover-arabic" class="discover-arabic-preview"></div>
+            
+            <label style="margin-top: 15px;">Orientation</label>
+            <div class="orientation-toggle" id="discover-orient-toggle">
+              <button id="discover-btn-h" class="btn-orient active" onclick="setOrientation('horizontal')">🖥️ Horizontal (16:9)</button>
+              <button id="discover-btn-v" class="btn-orient" onclick="setOrientation('vertical')">📱 Vertical (9:16)</button>
+            </div>
+            
+            <button id="discover-gen-btn" class="btn-generate" onclick="generateDiscoveredVerse()" style="margin-top: 20px;">
+              ✦ Generate This Verse
+            </button>
+          </div>
+          <div id="discover-error" class="status-msg error" style="display: none; margin-top: 20px; font-size: 0.88rem; text-align: center;"></div>
+        </div>
+
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-footer">
+        Consulting AI to find the most relevant verse matching your query.
+      </div>
+    </div><!-- /panel-discover -->
+
   </main><!-- /card -->
 
 <script>
@@ -757,11 +853,21 @@ const SURAHS = {
    TAB SWITCHING
 ═══════════════════════════════════════════════════════════════ */
 function switchTab(tab) {
-  ['single','bulk'].forEach(t => {
-    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
-    document.getElementById(`panel-${t}`).classList.toggle('active', t === tab);
-    document.getElementById(`tab-${t}`).setAttribute('aria-selected', t === tab);
+  ['single','bulk','discover'].forEach(t => {
+    const btn = document.getElementById(`tab-${t}`);
+    const panel = document.getElementById(`panel-${t}`);
+    if (btn) {
+      btn.classList.toggle('active', t === tab);
+      btn.setAttribute('aria-selected', t === tab);
+    }
+    if (panel) {
+      panel.classList.toggle('active', t === tab);
+    }
   });
+}
+
+function showTab(tab) {
+  switchTab(tab);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -777,8 +883,15 @@ let selectedOrientation = 'horizontal';
 
 function setOrientation(val) {
   selectedOrientation = val;
-  document.getElementById('btn-horizontal').classList.toggle('active', val === 'horizontal');
-  document.getElementById('btn-vertical').classList.toggle('active', val === 'vertical');
+  const btnH = document.getElementById('btn-horizontal');
+  const btnV = document.getElementById('btn-vertical');
+  if (btnH) btnH.classList.toggle('active', val === 'horizontal');
+  if (btnV) btnV.classList.toggle('active', val === 'vertical');
+
+  const discH = document.getElementById('discover-btn-h');
+  const discV = document.getElementById('discover-btn-v');
+  if (discH) discH.classList.toggle('active', val === 'horizontal');
+  if (discV) discV.classList.toggle('active', val === 'vertical');
 }
 
 function updateSurahHint() {
@@ -1157,6 +1270,119 @@ async function startBulkGenerate() {
     document.getElementById('bulk-gen-btn').disabled = false;
     document.getElementById('bulk-gen-btn').classList.remove('loading');
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AI VERSE DISCOVERY
+═══════════════════════════════════════════════════════════════ */
+let discoveredVerseData = null;
+
+async function discoverVerse() {
+  const query = document.getElementById('discover-input').value.trim();
+  const btn = document.getElementById('discover-btn');
+  const btnLabel = document.getElementById('discover-btn-label');
+  const resultArea = document.getElementById('discover-result');
+  const card = document.getElementById('discover-card');
+  const errorArea = document.getElementById('discover-error');
+  
+  if (!query) {
+    alert("Please enter a search query");
+    return;
+  }
+
+  // Show loading state
+  resultArea.style.display = 'none';
+  card.style.display = 'none';
+  errorArea.style.display = 'none';
+  errorArea.textContent = '';
+  
+  btn.disabled = true;
+  btn.classList.add('loading');
+  const originalLabel = btnLabel.textContent;
+  btnLabel.textContent = 'Consulting the scholar…';
+
+  try {
+    const res = await fetch('/discover', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+
+    if (!res.ok) {
+      let detail = 'Could not identify a matching verse. Please try a different query.';
+      try {
+        const err = await res.json();
+        if (err && err.detail) {
+          detail = err.detail;
+        }
+      } catch (_) {}
+      errorArea.textContent = detail;
+      errorArea.style.display = 'block';
+      resultArea.style.display = 'block';
+      return;
+    }
+
+    const data = await res.json();
+    discoveredVerseData = data; // store globally for generation
+
+    // Populate card
+    document.getElementById('discover-ref').textContent = `${data.surah_name} ${data.surah}:${data.verse}`;
+    document.getElementById('discover-reason').textContent = data.reason;
+    document.getElementById('discover-arabic').textContent = 'Loading Arabic text…';
+
+    // Show card layout
+    card.style.display = 'block';
+    resultArea.style.display = 'block';
+
+    // Fetch Arabic preview client-side
+    try {
+      const arabicUrl = `https://api.quran.com/api/v4/verses/by_key/${data.surah}:${data.verse}?words=true&word_fields=text_uthmani`;
+      const arabicRes = await fetch(arabicUrl);
+      if (arabicRes.ok) {
+        const arabicData = await arabicRes.json();
+        if (arabicData.verse && arabicData.verse.words) {
+          const words = arabicData.verse.words.map(w => w.text_uthmani).filter(Boolean);
+          document.getElementById('discover-arabic').textContent = words.join(' ');
+        } else {
+          document.getElementById('discover-arabic').textContent = 'Arabic text format error.';
+        }
+      } else {
+        document.getElementById('discover-arabic').textContent = 'Could not load Arabic preview from Quran.com.';
+      }
+    } catch (e) {
+      console.error('Arabic text fetch error:', e);
+      document.getElementById('discover-arabic').textContent = 'Could not load Arabic preview.';
+    }
+
+  } catch (err) {
+    console.error('Discovery fetch error:', err);
+    errorArea.textContent = 'Connection error — is the server running?';
+    errorArea.style.display = 'block';
+    resultArea.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btnLabel.textContent = originalLabel;
+  }
+}
+
+function generateDiscoveredVerse() {
+  if (!discoveredVerseData) return;
+  
+  const inpSurah = document.getElementById('inp-surah') || document.getElementById('surah');
+  const inpStart = document.getElementById('inp-start') || document.getElementById('verse');
+  const inpEnd = document.getElementById('inp-end') || document.getElementById('verse');
+  
+  if (inpSurah) inpSurah.value = discoveredVerseData.surah;
+  if (inpStart) inpStart.value = discoveredVerseData.verse;
+  if (inpEnd) inpEnd.value = discoveredVerseData.verse;
+  
+  if (typeof updateSurahHint === 'function') {
+    updateSurahHint();
+  }
+  
+  showTab('single');
+  startGenerate();
 }
 </script>
 </body>
