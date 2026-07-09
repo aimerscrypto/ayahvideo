@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-BG_VIDEO_URL = os.environ.get("BG_VIDEO_URL", "https://pub-0a47df772c2d4d2e838dad7de6d2b237.r2.dev/bg.mp4")
+BG_VIDEO_URL = os.environ.get("BG_VIDEO_URL", "https://pub-0a47df772c2d4d2e838dad7de6d2b237.r2.dev/video.mp4")
 
 
 def download_fonts():
