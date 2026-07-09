@@ -49,14 +49,8 @@ def download_fonts():
                 shutil.copy("Amiri-Regular.ttf", "UthmanicHafs.ttf")
                 print("Copied Amiri-Regular.ttf as fallback.")
 
-try:
-    import arabic_reshaper
-    from bidi.algorithm import get_display
-except ImportError:
-    print("Installing arabic_reshaper and python-bidi...")
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "arabic-reshaper", "python-bidi"])
-    import arabic_reshaper
-    from bidi.algorithm import get_display
+import arabic_reshaper
+from bidi.algorithm import get_display
 
 reshaper = arabic_reshaper.ArabicReshaper(configuration={
     'delete_harakat': False,

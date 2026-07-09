@@ -9,9 +9,10 @@ __pycache__/
 .venv/
 venv/
 
-# Audio files (large)
+# Media files (large)
 *.mp3
 *.wav
+*.mp4
 
 # Output videos
 output/

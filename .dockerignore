@@ -1,0 +1,30 @@
+# Local output and temp folders
+output/
+temp_assets/
+
+# Environment files
+.env
+*.env
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.pytest_cache/
+
+# Git
+.git/
+.gitignore
+
+# Large media files
+*.mp3
+*.mp4
+*.wav
+
+# IDE settings
+.vscode/
+.idea/
+.agents/
