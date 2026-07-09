@@ -21,6 +21,9 @@ temp_assets/
 temp_verse_audio.mp3
 concat.txt
 
+# VS Code
+.vscode/
+.agents/
 
 # OS files
 .DS_Store

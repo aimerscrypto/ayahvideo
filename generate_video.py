@@ -11,6 +11,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.stdout.reconfigure(encoding='utf-8')
 
+BG_VIDEO_URL = os.environ.get("BG_VIDEO_URL", "https://pub-0a47df772c2d4d2e838dad7de6d2b237.r2.dev/bg.mp4")
+
+
 def download_fonts():
     poppins_url = "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Regular.ttf"
     if not os.path.exists("Poppins-Regular.ttf") or os.path.getsize("Poppins-Regular.ttf") < 10000:
@@ -144,49 +147,23 @@ def download_verse_audio(surah, verse, dest_path):
     print(f"Verse audio saved: {dest_path} ({os.path.getsize(dest_path)} bytes)")
 
 def get_llm_split(english_text, num_chunks, arabic_chunks=None, frames=None):
-    def fallback_split(text, frames_list):
-        print("Using rule-based fallback splitting (sentence-boundary + duration-weighted)...")
-        # Split on sentence-ending punctuation
-        sentences = re.split(r'(?<=[.?!])\s+|(?<=[.?!"])\s*', text.strip())
-        sentences = [s for s in sentences if s.strip()]
-        if not sentences:
-            return [''] * len(frames_list)
 
-        total_dur = sum(f['duration'] for f in frames_list)
-        result = [''] * len(frames_list)
-        total_words = len(text.split())
-        sent_idx = 0
+    MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
+    original_words = english_text.split()
 
-        for i, frame in enumerate(frames_list):
-            weight = frame['duration'] / total_dur if total_dur > 0 else 1 / len(frames_list)
-            target_words = int(weight * total_words)
-            while sent_idx < len(sentences):
-                result[i] = (result[i] + ' ' + sentences[sent_idx]).strip()
-                sent_idx += 1
-                if len(result[i].split()) >= target_words or sent_idx >= len(sentences):
-                    break
-
-        # dump any remaining sentences into last frame
-        while sent_idx < len(sentences):
-            result[-1] = (result[-1] + ' ' + sentences[sent_idx]).strip()
-            sent_idx += 1
-
-        return result
-
-    def restore_spaces(original_text, split_lines):
-        original_words = original_text.split()
+    def restore_spaces_from(split_lines, start_word_idx, dump_remaining=False):
+        """Map LLM split lines back to original words starting from start_word_idx.
+        Returns (restored_lines, new_word_idx).
+        dump_remaining: if True, appends any leftover words to the final frame."""
+        word_idx = start_word_idx
         restored_lines = []
-        word_idx = 0
-        
         for line in split_lines:
             line_chars = len("".join(line.split()))
             if line_chars == 0:
                 restored_lines.append("")
                 continue
-                
             restored_words = []
             chars_matched = 0
-            
             while word_idx < len(original_words):
                 w = original_words[word_idx]
                 restored_words.append(w)
@@ -194,146 +171,127 @@ def get_llm_split(english_text, num_chunks, arabic_chunks=None, frames=None):
                 word_idx += 1
                 if chars_matched >= line_chars:
                     break
-                    
             restored_lines.append(" ".join(restored_words))
-            
-        while word_idx < len(original_words):
-            if not restored_lines:
-                restored_lines.append("")
-            restored_lines[-1] = (restored_lines[-1] + " " + original_words[word_idx]).strip()
-            word_idx += 1
-            
-        return restored_lines
+        if dump_remaining:
+            while word_idx < len(original_words):
+                if not restored_lines:
+                    restored_lines.append("")
+                restored_lines[-1] = (restored_lines[-1] + " " + original_words[word_idx]).strip()
+                word_idx += 1
+        return restored_lines, word_idx
 
-    # Build sub-frame list for the prompt
-    if arabic_chunks and len(arabic_chunks) == num_chunks:
-        segments_str = "\n".join(
-            f"Sub-frame {i+1}: {arabic_chunks[i]}" for i in range(num_chunks)
-        )
-    else:
-        segments_str = "\n".join(f"Sub-frame {i+1}: (Arabic text unavailable)" for i in range(num_chunks))
-
-    prompt = f"""You are aligning an English Quran translation to Arabic sub-frames.
-
-Arabic sub-frames ({num_chunks} total):
-{segments_str}
-
-English translation:
-"{english_text}"
-
-Rules:
-1. Split the English into EXACTLY {num_chunks} parts
-2. Each part must match the MEANING of its Arabic sub-frame — not English grammar
-3. Some Arabic sub-frames may be mid-sentence — that is fine, give them the matching English fragment
-4. Do NOT rewrite or paraphrase any words. You must preserve exact words and spaces from the original translation text. Do not combine, mash, or alter any English words at the split boundaries (e.g., never turn 'the religion' into 'thereligion').
-5. Every word of the English must appear in exactly one part
-6. Return ONLY a JSON array of {num_chunks} strings, nothing else
-7. PRONOUN RULE — pronouns ("He", "They", "It", "We", "You", "She") must stay WITH their verb in the SAME part. Never end a part on a bare pronoun that belongs to the next verb.
-8. COMPLETENESS RULE — never split a subject from its verb across two parts. "He guides" must appear together in one part, not "He" in one and "guides" in the next.
-9. READABILITY RULE — prefer independently readable parts WHERE POSSIBLE, but never at the cost of bleeding words into a frame whose Arabic does not contain them. An incomplete English fragment that matches its Arabic chunk is CORRECT. A complete English sentence that steals words from the next frame is WRONG.
-10. MAIN-VERB RULE — if a sentence spans two Arabic frames, assign the COMPLETE sentence to whichever frame contains the main verb.
-11. ARABIC-FIRST OVERRIDE — Rule 9 is always subordinate to Rule 2. If the Arabic chunk is mid-sentence, give ONLY the English words that correspond to those exact Arabic words. Do not complete the thought. Do not make it readable at the expense of accuracy. The on-screen Arabic and English must correspond word-for-word in meaning.
-
-Example of correct mid-sentence split:
-Arabic: ["they are only", "in dissension"]
-English split: ["they are only", "in dissension,"]
-
-NOT this (wrong — splits at English grammar):
-["but if they turn away,", "they are only in dissension,"]
-
-Example of CORRECT pronoun handling:
-Arabic: ["To Allah belongs the east and the west.", "He guides whom He wills to a straight path."]
-English split: ["To Allah belongs the east and the west.", "He guides whom He wills to a straight path."]
-
-NOT this (wrong — pronoun bleeds into wrong frame):
-["To Allah belongs the east and the west. He", "guides whom He wills to a straight path."]"""
-
-    MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
-
-    def parse_and_return(res_text, provider_label):
-        # Guard: None or non-string content must not reach .strip()
-        if not isinstance(res_text, str) or not res_text.strip():
-            raise ValueError(f"Empty or non-string response from {provider_label}")
-        res_text = res_text.strip()
-        if res_text.startswith("```json"):
-            res_text = res_text[7:-3]
-        elif res_text.startswith("```"):
-            res_text = res_text[3:-3]
-        parts = json.loads(res_text.strip())
-        if len(parts) == num_chunks:
-            print(f"  [PROVIDER] {provider_label}")
-            return restore_spaces(english_text, parts)
-        else:
-            print(f"  LLM returned {len(parts)} chunks instead of {num_chunks}. Padding/truncating...")
-            while len(parts) < num_chunks: parts.append("")
-            print(f"  [PROVIDER] {provider_label}")
-            return restore_spaces(english_text, parts[:num_chunks])
-
-    # ── 1. Build API configurations ──────────────────────────────────────────
+    # ── Build API configs ────────────────────────────────────────────────────
     configs = []
+    fw_key = os.environ.get("FIREWORKS_API_KEY")
+    if fw_key:
+        configs.append({
+            "label": "Fireworks",
+            "url": "https://api.fireworks.ai/inference/v1/chat/completions",
+            "key": fw_key,
+            "model": "accounts/fireworks/models/minimax-m3",
+            "timeout": 120
+        })
 
-    # Add OpenRouter configurations
     openrouter_keys = [
-        ("OPENROUTER_API_KEY", os.environ.get("OPENROUTER_API_KEY")),
+        ("OPENROUTER_API_KEY",   os.environ.get("OPENROUTER_API_KEY")),
         ("OPENROUTER_API_KEY_2", os.environ.get("OPENROUTER_API_KEY_2")),
         ("OPENROUTER_API_KEY_3", os.environ.get("OPENROUTER_API_KEY_3")),
-        ("OPENROUTER_API_KEY_4", os.environ.get("OPENROUTER_API_KEY_4"))
+        ("OPENROUTER_API_KEY_4", os.environ.get("OPENROUTER_API_KEY_4")),
     ]
-    for env_name, val in openrouter_keys:
-        if val:
-            configs.append({
-                "label": f"OpenRouter ({env_name})",
-                "url": "https://openrouter.ai/api/v1/chat/completions",
-                "key": val,
-                "model": MODEL
-            })
+    configs.extend([
+        {"label": f"OpenRouter ({n})", "url": "https://openrouter.ai/api/v1/chat/completions",
+         "key": v, "model": MODEL}
+        for n, v in openrouter_keys if v
+    ])
 
-    if configs:
-        for cfg_idx, cfg in enumerate(configs):
-            print(f"  Attempting {cfg['label']} with model: {cfg['model']} ({cfg_idx + 1}/{len(configs)})")
+    if not configs:
+        print("No API keys set — skipping LLM splitting.")
+        raise RuntimeError("Video generation failed — all AI models unavailable, please try again later")
+
+    def call_llm_raw(prompt, expected_count):
+        """Hit the API chain until one succeeds. Returns raw list of strings from LLM (no restore)."""
+        def parse(res_text, label):
+            if not isinstance(res_text, str) or not res_text.strip():
+                raise ValueError(f"Empty response from {label}")
+            res_text = res_text.strip()
+            if res_text.startswith("```json"):
+                res_text = res_text[7:-3]
+            elif res_text.startswith("```"):
+                res_text = res_text[3:-3]
+            parts = json.loads(res_text.strip())
+            while len(parts) < expected_count:
+                parts.append("")
+            parts = parts[:expected_count]
+            print(f"  [PROVIDER] {label}")
+            return parts  # raw strings — no restore_spaces here
+
+        for ci, cfg in enumerate(configs):
+            print(f"  Attempting {cfg['label']} with model: {cfg['model']} ({ci + 1}/{len(configs)})")
             try:
-                response = requests.post(
+                resp = requests.post(
                     cfg["url"],
                     headers={"Authorization": f"Bearer {cfg['key']}"},
-                    json={
-                        "model": cfg["model"],
-                        "messages": [{"role": "user", "content": prompt}]
-                    },
-                    timeout=60
+                    json={"model": cfg["model"], "messages": [{"role": "user", "content": prompt}]},
+                    timeout=cfg.get("timeout", 60),
                 )
-
-                if response.status_code == 200:
-                    resp_json = response.json()
-                    choices   = resp_json.get("choices") or []
+                if resp.status_code == 200:
+                    choices = resp.json().get("choices") or []
                     if choices:
-                        # ── Safe content extraction ──────────────────
-                        raw_content = choices[0].get("message", {}).get("content")
-                        if not isinstance(raw_content, str) or not raw_content.strip():
+                        raw = choices[0].get("message", {}).get("content")
+                        if not isinstance(raw, str) or not raw.strip():
                             print("    Model returned None/empty content. Moving to next config.")
                             continue
-                        # ── Try to parse ─────────────────────────────
                         try:
-                            result = parse_and_return(raw_content, f"{cfg['label']}/{cfg['model']}")
-                            return result       # ← success path
+                            return parse(raw, f"{cfg['label']}/{cfg['model']}")
                         except Exception as pe:
                             print(f"    Parse error: {pe}. Moving to next config.")
                             continue
                     else:
                         print("    Error: 'choices' missing or empty in response. Moving to next config.")
                 else:
-                    print(f"    {cfg['label']} returned status {response.status_code}. Moving to next config.")
-
+                    print(f"    {cfg['label']} returned status {resp.status_code}. Moving to next config.")
             except Exception as e:
                 print(f"    Error calling LLM ({cfg['label']}): {e}")
 
         print("All API configurations exhausted.")
-    else:
-        print("No OpenRouter API keys set — skipping LLM splitting.")
+        raise RuntimeError("Video generation failed — all AI models unavailable, please try again later")
 
-    # ── 2. All keys exhausted — raise error ───────────────────────────────────
-    raise RuntimeError(
-        "Video generation failed — all AI models unavailable, please try again later"
-    )
+    # ── Full-context Arabic string (same for all prompts) ────────────────────
+    if arabic_chunks and len(arabic_chunks) == num_chunks:
+        all_arabic_str = "\n".join(f"Sub-frame {i+1}: {arabic_chunks[i]}" for i in range(num_chunks))
+    else:
+        all_arabic_str = "\n".join(f"Sub-frame {i+1}: (Arabic unavailable)" for i in range(num_chunks))
+
+    RULES = """Rules:
+1. Each part must match the MEANING of its Arabic sub-frame — not English grammar
+2. Some Arabic sub-frames may be mid-sentence — give them only the matching English fragment
+3. Do NOT rewrite or paraphrase. Preserve exact words and spaces from the translation.
+4. Every word of the full English must appear in exactly one sub-frame
+5. PRONOUN RULE — pronouns (He/She/It/They/We/You/I) must stay WITH their verb in the SAME part
+6. COMPLETENESS RULE — never split a subject from its verb across parts
+7. ARABIC-FIRST — if Arabic is mid-sentence, give ONLY the English words matching that Arabic. Do not complete the thought.
+
+Example:
+Arabic: ["they are only", "in dissension"]
+Correct: ["they are only", "in dissension,"]
+Wrong:   ["but if they turn away,", "they are only in dissension,"]"""
+
+    # ── Small verse: single LLM call ─────────────────────────────────────────
+    prompt = f"""You are aligning an English Quran translation to Arabic sub-frames.
+
+ALL Arabic sub-frames ({num_chunks} total):
+{all_arabic_str}
+
+Full English translation:
+"{english_text}"
+
+{RULES}
+
+Return ONLY a JSON array of EXACTLY {num_chunks} strings, nothing else."""
+    raw_parts = call_llm_raw(prompt, num_chunks)
+    restored, _ = restore_spaces_from(raw_parts, 0, dump_remaining=True)
+    return restored
+
 
 
 
@@ -655,13 +613,29 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
     # FFmpeg: concat images + per-verse audio
     print("Rendering final concatenated video...")
     if step_callback: step_callback("Polishing and saving final video...", 75)
+    if orientation == 'vertical':
+        w, h = 1080, 1920
+    else:
+        w, h = 1920, 1080
+
+    filter_complex = (
+        f"[1:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},eq=saturation=2.0[bg]; "
+        f"[bg]drawbox=y=0:x=0:w=iw:h=ih:color=black@0.35:t=fill[bg_dark]; "
+        f"[0:v]format=rgba,colorchannelmixer=ar=1:aa=0[captions_alpha]; "
+        f"[bg_dark][captions_alpha]overlay=x=0:y=0:shortest=1,fps=30[out_v]"
+    )
+
     cmd = [
         "ffmpeg", "-y",
         "-f", "concat",
         "-safe", "0",
         "-i", "concat.txt",
+        "-stream_loop", "-1",
+        "-i", BG_VIDEO_URL,
         "-i", "temp_verse_audio.mp3",
-        "-vf", "fps=30",
+        "-filter_complex", filter_complex,
+        "-map", "[out_v]",
+        "-map", "2:a",
         "-c:v", "libx264",
         "-c:a", "aac",
         "-pix_fmt", "yuv420p",
@@ -709,6 +683,7 @@ def generate_verse_video_to_dir(surah, verse, output_dir, orientation='horizonta
     dest_name = f"{surah_name_clean}_{verse}.mp4"
     dest_path = os.path.join(output_dir, dest_name)
 
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     shutil.move(raw_path, dest_path)
     print(f"[bulk] Moved '{raw_path}' → '{dest_path}'")
     return dest_path
@@ -777,4 +752,5 @@ def generate_range_video(surah, start_verse, end_verse, progress_callback=None, 
 if __name__ == "__main__":
     print("Generating vertical video...")
     generate_verse_video(2, 255, 'vertical')
+
 
