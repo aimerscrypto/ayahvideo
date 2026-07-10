@@ -51,7 +51,7 @@ graph LR
 
 ## ⚙️ Environment Variables
 
-Configure the following environment variables in your `.env` file. Refer to [.env.example](file:///c:/Users/NAC/Desktop/projects/quran%20automation/.env.example) for baseline values:
+Configure the following environment variables in your `.env` file. Refer to [.env.example](.env.example) for baseline values:
 
 | Variable Name | Required | Description | Default / Example |
 | :--- | :--- | :--- | :--- |
