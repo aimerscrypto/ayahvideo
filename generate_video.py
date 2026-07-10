@@ -24,27 +24,7 @@ def download_fonts():
                 f.write(r.content)
             print(f"Poppins downloaded. Size: {os.path.getsize('Poppins-Regular.ttf')} bytes")
 
-    if not os.path.exists("Amiri-Regular.ttf") or os.path.getsize("Amiri-Regular.ttf") < 100000:
-        urls = [
-            "https://github.com/mustafa0x/qpc-fonts/raw/master/QCF_BSML.TTF",
-            "https://www.noor-book.com/fonts/UthmanicHafs1Ver18.ttf"
-        ]
-        success = False
-        for url in urls:
-            print(f"Trying to download Arabic font from {url}...")
-            try:
-                r = requests.get(url, allow_redirects=True, timeout=10)
-                if r.status_code == 200 and len(r.content) > 10000:
-                    with open("Amiri-Regular.ttf", "wb") as f:
-                        f.write(r.content)
-                    print(f"Success! Amiri-Regular.ttf downloaded from {url}. Size: {os.path.getsize('Amiri-Regular.ttf')} bytes")
-                    success = True
-                    break
-            except Exception as e:
-                print(f"Failed to download from {url}: {e}")
 
-        if not success:
-            print("All Arabic font downloads failed. No fallback font file available.")
 
 import arabic_reshaper
 from bidi.algorithm import get_display
