@@ -8,6 +8,9 @@ import json
 import shutil
 import unicodedata
 from PIL import Image, ImageDraw, ImageFont
+from PIL import features as pil_features
+
+RAQM_AVAILABLE = pil_features.check("raqm")
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -23,7 +26,6 @@ def download_fonts():
             with open("Poppins-Regular.ttf", "wb") as f:
                 f.write(r.content)
             print(f"Poppins downloaded. Size: {os.path.getsize('Poppins-Regular.ttf')} bytes")
-
 
 
 import arabic_reshaper
@@ -288,7 +290,10 @@ def render_image(arabic_text, english_text, output_img, ar_font_path="Amiri-Regu
 
     draw = ImageDraw.Draw(img)
 
-    display_arabic = get_arabic_display(arabic_text)
+    if RAQM_AVAILABLE:
+        display_arabic = arabic_text
+    else:
+        display_arabic = get_arabic_display(arabic_text)
 
     ar_size = ar_size_start
     ar_font = ImageFont.truetype(ar_font_path, ar_size)
@@ -342,7 +347,10 @@ def render_image(arabic_text, english_text, output_img, ar_font_path="Amiri-Regu
         # Fixed vertical positions: Arabic at 43%, English starts at 54%
         ar_x = W // 2
         ar_y = int(H * 0.43)
-        draw.text((ar_x, ar_y), display_arabic, font=ar_font, fill="white", anchor="mt")
+        if RAQM_AVAILABLE:
+            draw.text((ar_x, ar_y), display_arabic, font=ar_font, fill="white", anchor="mt", direction="rtl", language="ar")
+        else:
+            draw.text((ar_x, ar_y), display_arabic, font=ar_font, fill="white", anchor="mt")
         current_y = ar_y + ar_height + 30  # 30px gap, consistent every frame
         for line in wrapped_en:
             draw.text((W // 2, current_y), line, font=en_font, fill="white", anchor="mt")
@@ -357,7 +365,10 @@ def render_image(arabic_text, english_text, output_img, ar_font_path="Amiri-Regu
 
         ar_x = (W - ar_width) // 2
         # Bring Arabic down 35px closer to English
-        draw.text((ar_x, start_y + 35), display_arabic, font=ar_font, fill="white")
+        if RAQM_AVAILABLE:
+            draw.text((ar_x, start_y + 35), display_arabic, font=ar_font, fill="white", direction="rtl", language="ar")
+        else:
+            draw.text((ar_x, start_y + 35), display_arabic, font=ar_font, fill="white")
 
         current_y = start_y + ar_height + gap_between_ar_en
         for line in wrapped_en:
