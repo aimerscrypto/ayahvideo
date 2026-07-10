@@ -7,7 +7,8 @@ import requests
 import json
 import shutil
 import unicodedata
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, features
+print("Raqm available:", features.check("raqm"), flush=True)
 
 sys.stdout.reconfigure(encoding='utf-8')
 
