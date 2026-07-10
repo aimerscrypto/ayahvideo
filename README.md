@@ -70,8 +70,8 @@ Follow these steps to run the development environment locally:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/ayah-video.git
-cd quran-automation
+git clone https://github.com/aimerscrypto/ayahvideo.git
+cd ayahvideo
 ```
 
 ### 2. Configure Environment Variables
