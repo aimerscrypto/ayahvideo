@@ -314,6 +314,7 @@ def render_image(arabic_text, english_text, output_img, ar_font_path="UthmanicHa
     draw = ImageDraw.Draw(img)
 
     display_arabic = get_arabic_display(arabic_text)
+    print("Rendered Arabic:", display_arabic[:20], flush=True)
 
     ar_size = ar_size_start
     ar_font = ImageFont.truetype(ar_font_path, ar_size)
