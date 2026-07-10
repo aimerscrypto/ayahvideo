@@ -3,6 +3,9 @@ FROM python:3.11-slim
 # Install system dependencies (ffmpeg and clean up apt cache)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
+    libraqm0 \
+    libfribidi0 \
+    libharfbuzz0b \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
