@@ -7,8 +7,7 @@ import requests
 import json
 import shutil
 import unicodedata
-from PIL import Image, ImageDraw, ImageFont, features
-print("Raqm available:", features.check("raqm"), flush=True)
+from PIL import Image, ImageDraw, ImageFont
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -59,8 +58,7 @@ reshaper = arabic_reshaper.ArabicReshaper(configuration={
 })
 
 def get_arabic_display(text):
-    reshaped = reshaper.reshape(text)
-    return get_display(reshaped, base_dir='R')
+    return get_display(reshaper.reshape(text))
 
 def clean_english_text(text):
     text = re.sub(r'<[^>]+>', ' ', text)   # replace tags with space
@@ -314,7 +312,6 @@ def render_image(arabic_text, english_text, output_img, ar_font_path="UthmanicHa
     draw = ImageDraw.Draw(img)
 
     display_arabic = get_arabic_display(arabic_text)
-    print("Rendered Arabic:", display_arabic[:20], flush=True)
 
     ar_size = ar_size_start
     ar_font = ImageFont.truetype(ar_font_path, ar_size)
