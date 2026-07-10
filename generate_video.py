@@ -59,7 +59,8 @@ reshaper = arabic_reshaper.ArabicReshaper(configuration={
 })
 
 def get_arabic_display(text):
-    return get_display(reshaper.reshape(text))
+    reshaped = reshaper.reshape(text)
+    return get_display(reshaped, base_dir='R')
 
 def clean_english_text(text):
     text = re.sub(r'<[^>]+>', ' ', text)   # replace tags with space
