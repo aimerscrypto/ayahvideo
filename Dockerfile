@@ -15,7 +15,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy fonts from repository
-COPY Poppins-Regular.ttf UthmanicHafs.ttf ./
+COPY Poppins-Regular.ttf Amiri-Regular.ttf ./
 
 # Copy the rest of the application code
 COPY . .

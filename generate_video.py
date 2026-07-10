@@ -24,30 +24,27 @@ def download_fonts():
                 f.write(r.content)
             print(f"Poppins downloaded. Size: {os.path.getsize('Poppins-Regular.ttf')} bytes")
 
-    if not os.path.exists("UthmanicHafs.ttf") or os.path.getsize("UthmanicHafs.ttf") < 100000:
+    if not os.path.exists("Amiri-Regular.ttf") or os.path.getsize("Amiri-Regular.ttf") < 100000:
         urls = [
             "https://github.com/mustafa0x/qpc-fonts/raw/master/QCF_BSML.TTF",
             "https://www.noor-book.com/fonts/UthmanicHafs1Ver18.ttf"
         ]
         success = False
         for url in urls:
-            print(f"Trying to download Uthmanic Hafs from {url}...")
+            print(f"Trying to download Arabic font from {url}...")
             try:
                 r = requests.get(url, allow_redirects=True, timeout=10)
                 if r.status_code == 200 and len(r.content) > 10000:
-                    with open("UthmanicHafs.ttf", "wb") as f:
+                    with open("Amiri-Regular.ttf", "wb") as f:
                         f.write(r.content)
-                    print(f"Success! UthmanicHafs.ttf downloaded from {url}. Size: {os.path.getsize('UthmanicHafs.ttf')} bytes")
+                    print(f"Success! Amiri-Regular.ttf downloaded from {url}. Size: {os.path.getsize('Amiri-Regular.ttf')} bytes")
                     success = True
                     break
             except Exception as e:
                 print(f"Failed to download from {url}: {e}")
 
         if not success:
-            print("All Uthmanic Hafs downloads failed. Falling back to Amiri-Regular.ttf")
-            if os.path.exists("Amiri-Regular.ttf"):
-                shutil.copy("Amiri-Regular.ttf", "UthmanicHafs.ttf")
-                print("Copied Amiri-Regular.ttf as fallback.")
+            print("All Arabic font downloads failed. No fallback font file available.")
 
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -289,7 +286,7 @@ Return ONLY a JSON array of EXACTLY {num_chunks} strings, nothing else."""
 
 
 
-def render_image(arabic_text, english_text, output_img, ar_font_path="UthmanicHafs.ttf", en_font_path="Poppins-Regular.ttf", surah_img=None, orientation='horizontal'):
+def render_image(arabic_text, english_text, output_img, ar_font_path="Amiri-Regular.ttf", en_font_path="Poppins-Regular.ttf", surah_img=None, orientation='horizontal'):
     if orientation == 'vertical':
         W, H = 1080, 1920
         MAX_TEXT_W = 900
@@ -314,10 +311,10 @@ def render_image(arabic_text, english_text, output_img, ar_font_path="UthmanicHa
     display_arabic = get_arabic_display(arabic_text)
 
     ar_size = ar_size_start
-    ar_font = ImageFont.truetype(ar_font_path, ar_size, layout_engine=ImageFont.Layout.RAQM)
+    ar_font = ImageFont.truetype(ar_font_path, ar_size)
     while ar_font.getlength(display_arabic) > MAX_TEXT_W and ar_size > 20:
         ar_size -= 2
-        ar_font = ImageFont.truetype(ar_font_path, ar_size, layout_engine=ImageFont.Layout.RAQM)
+        ar_font = ImageFont.truetype(ar_font_path, ar_size)
 
     ar_width = ar_font.getlength(display_arabic)
     ar_bbox = ar_font.getbbox(display_arabic)
@@ -437,10 +434,10 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
         aggregated_words.append(current_word)
 
     # Calculate screen-fitting chunks
-    ar_font_path = "UthmanicHafs.ttf"
+    ar_font_path = "Amiri-Regular.ttf"
     chunk_ar_size = 60 if orientation == 'vertical' else 55
     chunk_max_width = 900 if orientation == 'vertical' else 1400
-    font = ImageFont.truetype(ar_font_path, chunk_ar_size, layout_engine=ImageFont.Layout.RAQM)
+    font = ImageFont.truetype(ar_font_path, chunk_ar_size)
     max_width = chunk_max_width
 
     raw_chunks = []
