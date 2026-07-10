@@ -314,10 +314,10 @@ def render_image(arabic_text, english_text, output_img, ar_font_path="UthmanicHa
     display_arabic = get_arabic_display(arabic_text)
 
     ar_size = ar_size_start
-    ar_font = ImageFont.truetype(ar_font_path, ar_size)
+    ar_font = ImageFont.truetype(ar_font_path, ar_size, layout_engine=ImageFont.Layout.RAQM)
     while ar_font.getlength(display_arabic) > MAX_TEXT_W and ar_size > 20:
         ar_size -= 2
-        ar_font = ImageFont.truetype(ar_font_path, ar_size)
+        ar_font = ImageFont.truetype(ar_font_path, ar_size, layout_engine=ImageFont.Layout.RAQM)
 
     ar_width = ar_font.getlength(display_arabic)
     ar_bbox = ar_font.getbbox(display_arabic)
@@ -440,7 +440,7 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
     ar_font_path = "UthmanicHafs.ttf"
     chunk_ar_size = 60 if orientation == 'vertical' else 55
     chunk_max_width = 900 if orientation == 'vertical' else 1400
-    font = ImageFont.truetype(ar_font_path, chunk_ar_size)
+    font = ImageFont.truetype(ar_font_path, chunk_ar_size, layout_engine=ImageFont.Layout.RAQM)
     max_width = chunk_max_width
 
     raw_chunks = []
