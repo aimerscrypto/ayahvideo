@@ -8,6 +8,8 @@ import json
 import requests
 from generate_video import generate_verse_video, generate_range_video, generate_verse_video_to_dir
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = FastAPI(title="Quran Video Generator")
 
 jobs = {}
@@ -102,7 +104,7 @@ def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_ve
 
     # ── 2. Create a unique batch output folder ────────────────────────────────
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    batch_dir = os.path.join("output", f"bulk_batch_{timestamp}")
+    batch_dir = os.path.join(BASE_DIR, "output", f"bulk_batch_{timestamp}")
     os.makedirs(batch_dir, exist_ok=True)
 
     # ── 3. Initialise the batch status entry ──────────────────────────────────
@@ -198,12 +200,12 @@ def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_ve
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index():
-    with open("index.html", "r", encoding="utf-8") as f:
+    with open(os.path.join(BASE_DIR, "index.html"), "r", encoding="utf-8") as f:
         return f.read()
 
 @app.get("/hero.mp4")
 async def get_hero_video():
-    return FileResponse("hero.mp4", media_type="video/mp4")
+    return FileResponse(os.path.join(BASE_DIR, "hero.mp4"), media_type="video/mp4")
 
 def query_llm(prompt: str) -> str:
     configs = []

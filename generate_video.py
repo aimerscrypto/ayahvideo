@@ -10,6 +10,10 @@ import unicodedata
 from PIL import Image, ImageDraw, ImageFont
 from PIL import features as pil_features
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+POPPINS_FONT = os.path.join(BASE_DIR, "Poppins-Regular.ttf")
+AMIRI_FONT = os.path.join(BASE_DIR, "Amiri-Regular.ttf")
+
 RAQM_AVAILABLE = pil_features.check("raqm")
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -19,13 +23,13 @@ BG_VIDEO_URL = os.environ.get("BG_VIDEO_URL", "https://pub-0a47df772c2d4d2e838da
 
 def download_fonts():
     poppins_url = "https://github.com/google/fonts/raw/main/ofl/poppins/Poppins-Regular.ttf"
-    if not os.path.exists("Poppins-Regular.ttf") or os.path.getsize("Poppins-Regular.ttf") < 10000:
-        print("Downloading Poppins-Regular.ttf...")
+    if not os.path.exists(POPPINS_FONT) or os.path.getsize(POPPINS_FONT) < 10000:
+        print(f"Downloading {POPPINS_FONT}...")
         r = requests.get(poppins_url, allow_redirects=True)
         if r.status_code == 200:
-            with open("Poppins-Regular.ttf", "wb") as f:
+            with open(POPPINS_FONT, "wb") as f:
                 f.write(r.content)
-            print(f"Poppins downloaded. Size: {os.path.getsize('Poppins-Regular.ttf')} bytes")
+            print(f"Poppins downloaded. Size: {os.path.getsize(POPPINS_FONT)} bytes")
 
 
 import arabic_reshaper
@@ -268,7 +272,7 @@ Return ONLY a JSON array of EXACTLY {num_chunks} strings, nothing else."""
 
 
 
-def render_image(arabic_text, english_text, output_img, ar_font_path="Amiri-Regular.ttf", en_font_path="Poppins-Regular.ttf", surah_img=None, orientation='horizontal'):
+def render_image(arabic_text, english_text, output_img, ar_font_path=AMIRI_FONT, en_font_path=POPPINS_FONT, surah_img=None, orientation='horizontal'):
     if orientation == 'vertical':
         W, H = 1080, 1920
         MAX_TEXT_W = 900
@@ -425,7 +429,7 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
         aggregated_words.append(current_word)
 
     # Calculate screen-fitting chunks
-    ar_font_path = "Amiri-Regular.ttf"
+    ar_font_path = AMIRI_FONT
     chunk_ar_size = 60 if orientation == 'vertical' else 55
     chunk_max_width = 900 if orientation == 'vertical' else 1400
     font = ImageFont.truetype(ar_font_path, chunk_ar_size)
@@ -558,9 +562,9 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
         print(f"  Duration: {c['duration']:.2f}s")
     print("---------------------\n")
 
-    output_dir = "output"
+    output_dir = os.path.join(BASE_DIR, "output")
     os.makedirs(output_dir, exist_ok=True)
-    temp_dir = "temp_assets"
+    temp_dir = os.path.join(BASE_DIR, "temp_assets")
     os.makedirs(temp_dir, exist_ok=True)
 
     # Download per-verse audio
@@ -590,7 +594,7 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
             if step_callback: step_callback("Creating video screens...", 50 + int((i/max(1, len(chunks)))*25))
             img_path = os.path.join(temp_dir, f"chunk_{i}.png")
             print(f"  Frame {i} Arabic → {c['arabic']}")
-            render_image(c["arabic"], english_per_frame[i], img_path, ar_font_path, "Poppins-Regular.ttf", surah_img=surah_img, orientation=orientation)
+            render_image(c["arabic"], english_per_frame[i], img_path, ar_font_path, POPPINS_FONT, surah_img=surah_img, orientation=orientation)
             f.write(f"file '{os.path.basename(img_path)}'\n")
             f.write(f"duration {c['duration']}\n")
 
@@ -684,7 +688,7 @@ def generate_range_video(surah, start_verse, end_verse, progress_callback=None, 
     """Render each verse in [start_verse, end_verse] individually then concatenate into one MP4."""
     surah_name = fetch_surah_name(surah)
     download_fonts()
-    output_dir = "output"
+    output_dir = os.path.join(BASE_DIR, "output")
     os.makedirs(output_dir, exist_ok=True)
     range_temp_dir = os.path.join(output_dir, f"range_temp_{surah}_{start_verse}_{end_verse}")
     os.makedirs(range_temp_dir, exist_ok=True)
