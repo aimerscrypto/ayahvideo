@@ -201,6 +201,10 @@ async def read_index():
     with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
 
+@app.get("/hero.mp4")
+async def get_hero_video():
+    return FileResponse("hero.mp4", media_type="video/mp4")
+
 def query_llm(prompt: str) -> str:
     configs = []
     fw_key = os.environ.get("FIREWORKS_API_KEY")

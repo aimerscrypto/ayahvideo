@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quran Studio — Video Generator</title>
+  <title>Ayah Video — Video Generator</title>
   <meta name="description" content="Generate beautiful Quran verse videos with Arabic text and English translation, synced to recitation audio.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
@@ -33,7 +33,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 16px 64px;
       position: relative;
       overflow-x: hidden;
     }
@@ -602,32 +601,619 @@
       background: rgba(0,0,0,0.3);
       border-radius: 8px;
     }
+
+    /* ── Two-View Layout ──────────────────────────────────────── */
+    .view-container {
+      display: none;
+      width: 100%;
+    }
+    .view-container.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeInView 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeInView {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── Sticky Navbar ────────────────────────────────────────── */
+    .navbar {
+      width: 100%;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: center;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+    }
+    .nav-container {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-logo {
+      cursor: pointer;
+    }
+    .logo-text {
+      font-size: 1.3rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      text-transform: uppercase;
+      user-select: none;
+    }
+    .logo-text span {
+      font-weight: 600;
+    }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color var(--transition);
+    }
+    .nav-link:hover {
+      color: var(--gold);
+    }
+    .nav-btn {
+      padding: 9px 18px;
+      font-size: 0.8rem;
+    }
+
+    /* ── Global Redesigned Buttons ────────────────────────────── */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+      color: #0a0a0a;
+      border: none;
+      border-radius: 9px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+      text-decoration: none;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(201, 168, 76, 0.35);
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition), border-color var(--transition), transform var(--transition);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: var(--gold);
+      transform: translateY(-2px);
+    }
+
+    /* ── Hero Section ─────────────────────────────────────────── */
+    .hero-section {
+      padding: 90px 20px 70px;
+      width: 100%;
+      max-width: 900px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .hero-badge {
+      background: rgba(201, 168, 76, 0.08);
+      border: 1px solid var(--border);
+      color: var(--gold);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px 16px;
+      border-radius: 99px;
+      margin-bottom: 24px;
+      display: inline-block;
+      animation: pulseGlow 3s infinite ease-in-out;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 10px rgba(201, 168, 76, 0.05); }
+      50% { box-shadow: 0 0 20px rgba(201, 168, 76, 0.2); }
+    }
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 300;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      margin-bottom: 22px;
+      max-width: 800px;
+    }
+    .hero-title span {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 700px;
+      margin-bottom: 40px;
+      font-weight: 400;
+    }
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 64px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .hero-btn {
+      padding: 15px 32px;
+      font-size: 0.9rem;
+    }
+
+    /* ── Framed Browser Mockup ───────────────────────────────── */
+    .browser-mockup {
+      width: 100%;
+      max-width: 800px;
+      margin: 40px auto 0;
+      background: #111111;
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.85),
+        0 0 35px var(--gold-glow);
+      position: relative;
+    }
+    .browser-header {
+      height: 38px;
+      background: #161616;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+      position: relative;
+    }
+    .browser-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .browser-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    .browser-address {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0d0d0d;
+      color: var(--muted);
+      font-size: 0.72rem;
+      padding: 4px 28px;
+      border-radius: 6px;
+      border: 1px solid rgba(201, 168, 76, 0.15);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .browser-content {
+      line-height: 0;
+      position: relative;
+    }
+    .browser-content img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ── Features Section ─────────────────────────────────────── */
+    .features-section {
+      padding: 90px 24px;
+      width: 100%;
+      max-width: 1100px;
+      text-align: center;
+    }
+    .section-title {
+      font-size: 2.1rem;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--gold);
+      margin-bottom: 54px;
+      text-transform: uppercase;
+      position: relative;
+      display: inline-block;
+    }
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 1px;
+      background: var(--gold);
+      opacity: 0.5;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      justify-items: center;
+      margin-top: 20px;
+    }
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 42px 32px;
+      border-radius: 18px;
+      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+      text-align: left;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 36px rgba(201, 168, 76, 0.08);
+      border-color: rgba(201, 168, 76, 0.35);
+    }
+    .feature-icon {
+      font-size: 2.2rem;
+      margin-bottom: 22px;
+      color: var(--gold);
+      display: inline-block;
+    }
+    .feature-title {
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 14px;
+      letter-spacing: 0.02em;
+    }
+    .feature-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── How It Works Section ─────────────────────────────────── */
+    .how-it-works-section {
+      padding: 90px 24px;
+      width: 100%;
+      max-width: 1100px;
+      text-align: center;
+    }
+    .steps-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      margin-top: 20px;
+    }
+    .step-card {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 42px 32px;
+      border-radius: 18px;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.01);
+    }
+    .step-num {
+      position: absolute;
+      top: 12px;
+      right: 24px;
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: rgba(201, 168, 76, 0.05);
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+    }
+    .step-title {
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: var(--gold);
+      margin-bottom: 14px;
+      letter-spacing: 0.02em;
+    }
+    .step-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── CTA Banner Section ────────────────────────────────────── */
+    .cta-banner-section {
+      padding: 60px 24px 90px;
+      width: 100%;
+      max-width: 900px;
+      text-align: center;
+    }
+    .cta-banner-card {
+      background: linear-gradient(135deg, rgba(201, 168, 76, 0.12) 0%, rgba(17, 17, 17, 0.5) 100%);
+      border: 1px solid var(--border);
+      padding: 60px 40px;
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.6),
+        inset 0 0 30px rgba(201, 168, 76, 0.04);
+    }
+    .cta-banner-title {
+      font-size: 2.2rem;
+      font-weight: 300;
+      color: var(--text);
+      margin-bottom: 18px;
+      letter-spacing: -0.01em;
+    }
+    .cta-banner-subtitle {
+      font-size: 1.05rem;
+      color: var(--muted);
+      margin-bottom: 36px;
+      max-width: 520px;
+      line-height: 1.6;
+    }
+    .cta-banner-btn {
+      padding: 15px 36px;
+      font-size: 0.95rem;
+    }
+
+    /* ── Main App Mode Header/Transitions ──────────────────────── */
+    #view-app {
+      padding: 32px 16px 64px;
+    }
+    .app-header-nav {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 14px;
+    }
+    .btn-back {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 14px;
+      border-radius: 9px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+      text-transform: uppercase;
+    }
+    .btn-back:hover {
+      color: var(--gold);
+      border-color: var(--gold);
+      background: rgba(201, 168, 76, 0.05);
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    .footer {
+      width: 100%;
+      max-width: 1100px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 36px 24px;
+      text-align: center;
+      margin-top: 40px;
+    }
+    .footer p {
+      font-size: 0.8rem;
+      color: #554d3d;
+      line-height: 1.6;
+      letter-spacing: 0.02em;
+    }
+    .footer-links {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* ── Mobile Responsive Overrides ──────────────────────────── */
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2.2rem; }
+      .hero-subtitle { font-size: 1.05rem; }
+      .section-title { font-size: 1.8rem; }
+      .cta-banner-card { padding: 40px 24px; }
+      .cta-banner-title { font-size: 1.8rem; }
+      .navbar { padding: 14px 16px; }
+    }
   </style>
 </head>
 <body>
 
-  <header class="header">
-    <h1 class="app-name">Quran <span>Studio</span></h1>
-    <p class="arabic-subtitle">مولد مقاطع القرآن</p>
-    <div class="header-divider"></div>
-  </header>
+  <!-- ── MARKETING LANDING PAGE VIEW ───────────────────────────── -->
+  <div id="view-landing" class="view-container active">
+    <!-- Navbar -->
+    <header class="navbar">
+      <div class="nav-container">
+        <div class="nav-logo" onclick="showView('landing')">
+          <h1 class="logo-text">Ayah <span>Video</span></h1>
+        </div>
+        <nav class="nav-links">
+          <a href="javascript:void(0)" onclick="scrollToSection('#features')" class="nav-link">Features</a>
+          <a href="javascript:void(0)" onclick="scrollToSection('#how-it-works')" class="nav-link">How It Works</a>
+        </nav>
+        <button class="btn-primary nav-btn" onclick="showView('app')">Launch App ✦</button>
+      </div>
+    </header>
 
-  <nav class="tab-nav" role="tablist" aria-label="Mode">
-    <button id="tab-single" class="tab-btn active" role="tab" aria-selected="true"
-            onclick="switchTab('single')">
-      🎬 Single Verse
-    </button>
-    <button id="tab-bulk" class="tab-btn" role="tab" aria-selected="false"
-            onclick="switchTab('bulk')">
-      📦 Bulk Creator
-    </button>
-    <button id="tab-discover" class="tab-btn" role="tab" aria-selected="false"
-            onclick="switchTab('discover')">
-      ✦ Discover
-    </button>
-  </nav>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-badge">✦ Synced Verse Video Generator</div>
+      <h1 class="hero-title">Create Beautiful <span>Quran Verse Videos</span></h1>
+      <p class="hero-subtitle">Generate high-quality video clips with perfectly synced Arabic text, English translation, and beautiful recitations. Tailored for TikTok, Instagram Reels, and YouTube Shorts.</p>
+      <div class="hero-ctas">
+        <button class="btn-primary hero-btn" onclick="showView('app')">Start Generating — It's Free</button>
+        <a href="javascript:void(0)" onclick="scrollToSection('#how-it-works')" class="btn-secondary hero-btn">See How It Works</a>
+      </div>
+      
+      <video 
+        autoplay 
+        muted 
+        loop 
+        playsinline
+        style="width:100%; max-width:800px; border-radius:16px; 
+               border:1px solid #C9A84C; 
+               box-shadow:0 0 40px rgba(201,168,76,0.3);
+               display:block; margin:0 auto;"
+      >
+        <source src="/hero.mp4" type="video/mp4">
+      </video>
+    </section>
 
-  <main class="card" role="main">
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+      <h2 class="section-title">Designed for Creators & Seekers</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polygon points="10 8 16 12 10 16 10 8"></polygon>
+            </svg>
+          </div>
+          <h3 class="feature-title">Single Verse Reels</h3>
+          <p class="feature-desc">Generate single or short verse clips, optimized for mobile (9:16) or desktop formats, with Sheikh Mishary Alafasy's recitation.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="4" y1="12" x2="20" y2="12"></line>
+              <line x1="4" y1="18" x2="20" y2="18"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">Bulk Video Creator</h3>
+          <p class="feature-desc">Select a verse range and generate multiple individual video chunks automatically. Ready to batch upload in minutes.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <h3 class="feature-title">AI Verse Discovery</h3>
+          <p class="feature-desc">Can't remember the verse number? Type a topic (e.g., "patience in hardship") and let the AI find the perfect verse and preview the translation.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works-section">
+      <h2 class="section-title">How It Works</h2>
+      <div class="steps-container">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <h3 class="step-title">Select Verse or Search</h3>
+          <p class="step-desc">Enter the Surah and verse range directly, or type a concept into our AI scholar search to discover verses.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <h3 class="step-title">Choose Your Orientation</h3>
+          <p class="step-desc">Pick Vertical format (9:16) for short-form social content like Reels and TikToks, or Horizontal (16:9) for standard videos.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <h3 class="step-title">Generate and Download</h3>
+          <p class="step-desc">Our backend renders the high-quality MP4 video with custom layouts, styled fonts, and audio tracks. Ready in seconds.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-banner-section">
+      <div class="cta-banner-card">
+        <h2 class="cta-banner-title">Start Generating Verse Videos Today</h2>
+        <p class="cta-banner-subtitle">No signup required. Open the application dashboard and begin creating videos immediately.</p>
+        <button class="btn-primary cta-banner-btn" onclick="showView('app')">Open Ayah Video ✦</button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>© 2026 Ayah Video.</p>
+      <p class="footer-links">
+        Recitation by Sheikh Mishary Alafasy · Translation by Saheeh International
+      </p>
+    </footer>
+  </div>
+
+
+  <!-- ── APP DASHBOARD VIEW ────────────────────────────────────── -->
+  <div id="view-app" class="view-container">
+    <div class="app-header-nav">
+      <button class="btn-back" onclick="showView('landing')">← Back to Home</button>
+    </div>
+
+    <header class="header">
+      <h1 class="app-name">Ayah <span>Video</span></h1>
+      <p class="arabic-subtitle">مولد مقاطع القرآن</p>
+      <div class="header-divider"></div>
+    </header>
+
+    <nav class="tab-nav" role="tablist" aria-label="Mode">
+      <button id="tab-single" class="tab-btn active" role="tab" aria-selected="true"
+              onclick="switchTab('single')">
+        🎬 Single Verse
+      </button>
+      <button id="tab-bulk" class="tab-btn" role="tab" aria-selected="false"
+              onclick="switchTab('bulk')">
+        📦 Bulk Creator
+      </button>
+      <button id="tab-discover" class="tab-btn" role="tab" aria-selected="false"
+              onclick="switchTab('discover')">
+        ✦ Discover
+      </button>
+    </nav>
+
+    <main class="card" role="main">
 
     <!-- ══════════════════════════════════════════════════════════
          TAB 1 — Single Verse
@@ -818,6 +1404,7 @@
     </div><!-- /panel-discover -->
 
   </main><!-- /card -->
+  </div><!-- /view-app -->
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -869,6 +1456,59 @@ function switchTab(tab) {
 function showTab(tab) {
   switchTab(tab);
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW SWITCHING & SCROLLING
+   (Redesign Marketing Landing Page VS Application Dashboard)
+═══════════════════════════════════════════════════════════════ */
+function showView(viewName) {
+  const landing = document.getElementById('view-landing');
+  const app     = document.getElementById('view-app');
+
+  if (viewName === 'app') {
+    if (landing) landing.classList.remove('active');
+    if (app) app.classList.add('active');
+    window.location.hash = 'app';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    if (app) app.classList.remove('active');
+    if (landing) landing.classList.add('active');
+    if (window.location.hash === '#app') {
+      history.pushState("", document.title, window.location.pathname + window.location.search);
+    }
+  }
+}
+
+function scrollToSection(selector) {
+  const landing = document.getElementById('view-landing');
+  if (landing && !landing.classList.contains('active')) {
+    showView('landing');
+    setTimeout(() => {
+      const el = document.querySelector(selector);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
+  } else {
+    const el = document.querySelector(selector);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// Router initialization & back/forward handler
+window.addEventListener('DOMContentLoaded', () => {
+  if (window.location.hash === '#app') {
+    showView('app');
+  } else {
+    showView('landing');
+  }
+});
+
+window.addEventListener('hashchange', () => {
+  if (window.location.hash === '#app') {
+    showView('app');
+  } else {
+    showView('landing');
+  }
+});
 
 /* ═══════════════════════════════════════════════════════════════
    SINGLE VIDEO — existing logic (unchanged)
