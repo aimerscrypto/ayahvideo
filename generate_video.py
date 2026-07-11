@@ -624,10 +624,10 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
         "ffmpeg", "-y",
         "-f", "concat",
         "-safe", "0",
-        "-i", "concat.txt",
+        "-i", os.path.join(temp_dir, "concat.txt"),
         "-stream_loop", "-1",
         "-i", BG_VIDEO_URL,
-        "-i", "temp_verse_audio.mp3",
+        "-i", os.path.join(temp_dir, "temp_verse_audio.mp3"),
         "-filter_complex", filter_complex,
         "-map", "[out_v]",
         "-map", "2:a",
@@ -635,7 +635,7 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
         "-c:a", "aac",
         "-pix_fmt", "yuv420p",
         "-shortest",
-        f"../{output_filename}"
+        output_filename
     ]
 
     try:
