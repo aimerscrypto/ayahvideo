@@ -21,7 +21,7 @@ venv/
 
 # Large media files
 *.mp3
-*.mp4
+# *.mp4
 *.wav
 
 # IDE settings
