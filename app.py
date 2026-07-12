@@ -1,5 +1,6 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+import asyncio
 import zipfile
 import io
 from pydantic import BaseModel
@@ -15,6 +16,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = FastAPI(title="Quran Video Generator")
 
 jobs = {}
+
+# Global lock — only one bulk job may run at a time.
+bulk_lock = asyncio.Lock()
 
 # Global tracker for bulk batch jobs.
 # Structure: { batch_id: { "status", "total", "completed", "failed", "batch_dir", "chunks", "videos" } }
@@ -93,7 +97,8 @@ def background_generate_range(job_id: str, surah: int, start_verse: int, end_ver
 
 
 def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_verse: int,
-                              verses_per_video: int, orientation: str = 'horizontal'):
+                              verses_per_video: int, orientation: str = 'horizontal',
+                              loop=None):
     """Background task that splits a verse range into chunks and renders each as a separate MP4."""
 
     # ── 1. Build the list of (chunk_start, chunk_end) pairs ──────────────────
@@ -199,6 +204,10 @@ def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_ve
     bulk_batches[batch_id]["current_chunk"] = None
     print(f"[bulk] Batch {batch_id} finished. Status: {final_status} "
           f"({bulk_batches[batch_id]['completed']}/{len(chunks)} completed)")
+
+    # ── 6. Release the global bulk lock ───────────────────────────────────────
+    if loop is not None:
+        loop.call_soon_threadsafe(bulk_lock.release)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index():
@@ -380,12 +389,23 @@ async def generate_bulk_endpoint(req: GenerateBulkRequest, background_tasks: Bac
     if req.verses_per_video < 1:
         raise HTTPException(status_code=400, detail="verses_per_video must be >= 1")
 
+    # Reject concurrent bulk jobs immediately.
+    if bulk_lock.locked():
+        raise HTTPException(
+            status_code=429,
+            detail="A bulk generation job is already running. Please wait for it to complete before starting another."
+        )
+
+    # Acquire the lock; the background task will release it when done.
+    await bulk_lock.acquire()
+
     batch_id = str(uuid.uuid4())
     bulk_batches[batch_id] = {"status": "pending"}
+    loop = asyncio.get_event_loop()
     background_tasks.add_task(
         background_generate_bulk,
         batch_id, req.surah, req.start_verse, req.end_verse,
-        req.verses_per_video, req.orientation
+        req.verses_per_video, req.orientation, loop
     )
     return {"batch_id": batch_id}
 
