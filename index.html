@@ -507,6 +507,58 @@
     .chunk-badge.done      { background: rgba(46,204,113,0.15); color: var(--green); }
     .chunk-badge.error     { background: rgba(231,76,60,0.15);  color: var(--red); }
 
+    /* ── Per-video bulk download button ──────────────────────── */
+    .btn-bulk-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 11px;
+      background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+      border: none;
+      border-radius: 6px;
+      color: #0a0a0a;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      flex-shrink: 0;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      animation: fadeUp 0.3s ease;
+    }
+    .btn-bulk-download:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(201,168,76,0.45);
+    }
+
+    /* ── Download All ZIP button ─────────────────────────────── */
+    .btn-zip-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+      border: none;
+      border-radius: 8px;
+      color: #0a0a0a;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      margin-left: auto;
+      flex-shrink: 0;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .btn-zip-download:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(201,168,76,0.45);
+    }
+
     /* Batch done / error banner */
     .batch-result {
       margin-top: 16px;
@@ -1356,7 +1408,6 @@
 
       <div class="card-divider"></div>
       <div class="card-footer">
-        Videos are saved inside a timestamped folder in your <strong style="color:#3a3428">output/</strong> directory.<br>
         Recitation: Sheikh Mishary Alafasy &nbsp;·&nbsp; Translation: Saheeh International
       </div>
     </div><!-- /panel-bulk -->
@@ -1772,10 +1823,23 @@ function updateChunkRow(i, chunk) {
   else if (s === 'done')  status.textContent = 'Completed ✓';
   else if (s === 'error') status.textContent = chunk.error ? `Error: ${chunk.error.slice(0,60)}` : 'Failed';
 
-  // Badge
+  // Badge / download button
   badge.className = `chunk-badge ${s}`;
-  const BADGE_LABELS = { pending:'Queued', rendering:'Creating…', done:'Done', error:'Failed' };
-  badge.textContent = BADGE_LABELS[s] || s;
+  if (s === 'done' && chunk.file) {
+    // Derive relative path: batch_folder_name/filename.mp4
+    const fileParts = chunk.file.replace(/\\/g, '/');
+    const segments  = fileParts.split('/');
+    const fileName  = segments[segments.length - 1];
+    // Find 'output' segment to get batch folder name
+    const outputIdx = segments.lastIndexOf('output');
+    const batchFolder = outputIdx !== -1 ? segments[outputIdx + 1] : '';
+    const relPath = batchFolder ? `${batchFolder}/${fileName}` : fileName;
+    const encodedPath = encodeURIComponent(relPath).replace(/%2F/g, '/');
+    badge.outerHTML = `<a href="/download-bulk?file=${encodedPath}" download id="chunk-badge-${i}" class="btn-bulk-download">⬇ Download</a>`;
+  } else {
+    const BADGE_LABELS = { pending:'Queued', rendering:'Creating…', done:'Done', error:'Failed' };
+    badge.textContent = BADGE_LABELS[s] || s;
+  }
 }
 
 /* ── Update overall progress ── */
@@ -1809,15 +1873,22 @@ function showBatchResult(data) {
   const fail  = data.failed || 0;
   const done  = data.completed || 0;
 
+  // Derive batch folder name from batch_dir
+  const batchDirRaw = (data.batch_dir || '').replace(/\\/g, '/');
+  const batchFolder = batchDirRaw.split('/').filter(Boolean).pop() || '';
+  const zipBtn = batchFolder && done > 0
+    ? `<a href="/download-bulk-zip?batch=${encodeURIComponent(batchFolder)}" download class="btn-zip-download">⬇ Download All as ZIP</a>`
+    : '';
+
   el.classList.remove('success','partial','fail');
   el.classList.add('show');
 
   if (fail === 0) {
     el.className = 'batch-result show success';
-    el.innerHTML = `<span>🎉</span> All ${done} video${done > 1 ? 's' : ''} generated successfully! Check your <strong>output/bulk_batch_…</strong> folder.`;
+    el.innerHTML = `<span>🎉</span> All ${done} video${done > 1 ? 's' : ''} generated successfully! ${zipBtn}`;
   } else if (done > 0) {
     el.className = 'batch-result show partial';
-    el.innerHTML = `<span>⚠️</span> ${done} video${done > 1 ? 's' : ''} completed, ${fail} failed. Check your <strong>output/bulk_batch_…</strong> folder for the successful ones.`;
+    el.innerHTML = `<span>⚠️</span> ${done} video${done > 1 ? 's' : ''} completed, ${fail} failed. ${zipBtn}`;
   } else {
     el.className = 'batch-result show fail';
     el.innerHTML = `<span>❌</span> All ${fail} video${fail > 1 ? 's' : ''} failed to generate. Please check the server logs.`;

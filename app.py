@@ -1,5 +1,7 @@
 from fastapi import FastAPI, BackgroundTasks, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+import zipfile
+import io
 from pydantic import BaseModel
 import uuid
 import os
@@ -408,3 +410,44 @@ async def download_video(job_id: str):
         raise HTTPException(status_code=400, detail="Video not ready yet")
     file_path = job["file"]
     return FileResponse(file_path, media_type="video/mp4", filename=os.path.basename(file_path))
+
+@app.get("/download-bulk")
+async def download_bulk_video(file: str):
+    """Download a single bulk-generated video.
+    Query param `file` should be relative to output/, e.g. bulk_batch_20240101_120000/MyVerse_1_3.mp4
+    """
+    # Sanitise: reject any path traversal attempts
+    if ".." in file:
+        raise HTTPException(status_code=400, detail="Invalid file path")
+    file_path = os.path.join(BASE_DIR, "output", file)
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(file_path, media_type="video/mp4", filename=os.path.basename(file_path))
+
+@app.get("/download-bulk-zip")
+async def download_bulk_zip(batch: str):
+    """Return all MP4s in a bulk batch folder as a ZIP download.
+    Query param `batch` should be the folder name, e.g. bulk_batch_20240101_120000
+    """
+    if ".." in batch or "/" in batch or "\\" in batch:
+        raise HTTPException(status_code=400, detail="Invalid batch name")
+    batch_dir = os.path.join(BASE_DIR, "output", batch)
+    if not os.path.isdir(batch_dir):
+        raise HTTPException(status_code=404, detail="Batch folder not found")
+
+    mp4_files = [f for f in os.listdir(batch_dir) if f.lower().endswith(".mp4")]
+    if not mp4_files:
+        raise HTTPException(status_code=404, detail="No MP4 files found in batch")
+
+    # Build ZIP in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for fname in mp4_files:
+            zf.write(os.path.join(batch_dir, fname), arcname=fname)
+    zip_buffer.seek(0)
+
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{batch}.zip"'}
+    )
