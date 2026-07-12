@@ -28,3 +28,6 @@ venv/
 .vscode/
 .idea/
 .agents/
+
+!logo.png
+!hero.mp4

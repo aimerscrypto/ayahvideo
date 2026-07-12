@@ -207,6 +207,10 @@ async def read_index():
 async def get_hero_video():
     return FileResponse(os.path.join(BASE_DIR, "hero.mp4"), media_type="video/mp4")
 
+@app.get("/logo.png")
+async def get_logo_image():
+    return FileResponse(os.path.join(BASE_DIR, "logo.png"), media_type="image/png")
+
 def query_llm(prompt: str) -> str:
     configs = []
     fw_key = os.environ.get("FIREWORKS_API_KEY")
