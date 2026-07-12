@@ -1971,18 +1971,6 @@ async function startBulkGenerate() {
         orientation: bulkOrientation
       })
     });
-
-    // Another bulk job is already running — show alert and bail out.
-    if (res.status === 429) {
-      let msg = 'A bulk generation job is already running. Please wait for it to complete before starting another.';
-      try { const err = await res.json(); if (err && err.detail) msg = err.detail; } catch (_) {}
-      alert(msg);
-      document.getElementById('batch-dashboard').classList.remove('visible');
-      document.getElementById('bulk-gen-btn').disabled = false;
-      document.getElementById('bulk-gen-btn').classList.remove('loading');
-      return;
-    }
-
     const data = await res.json();
     if (!data.batch_id) throw new Error('No batch_id returned');
     batchId = data.batch_id;
