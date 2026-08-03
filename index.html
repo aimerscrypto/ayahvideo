@@ -1389,6 +1389,22 @@
     <div id="panel-single" class="tab-panel active">
       <div class="card-body">
 
+        <!-- Surah dropdown -->
+        <div class="input-group">
+          <label>Which Surah?</label>
+          <input type="hidden" id="inp-surah" value="2">
+          <div class="custom-select-container" id="surah-container-single">
+            <div class="custom-select-trigger" onclick="toggleSurahDropdown('single', event)">
+              <span id="selected-surah-name-single">2. Al-Baqarah</span>
+              <span class="custom-select-arrow">▼</span>
+            </div>
+            <div class="custom-select-dropdown" id="surah-dropdown-single">
+              <input type="text" class="custom-select-search" id="surah-search-single" placeholder="Search surah number or name..." oninput="filterSurahs('single')" onclick="event.stopPropagation()">
+              <div class="custom-select-options" id="surah-options-single"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Reciter dropdown -->
         <div class="input-group">
           <label>Reciter</label>
@@ -1402,13 +1418,6 @@
               <div class="custom-select-options" id="reciter-options-single"></div>
             </div>
           </div>
-        </div>
-
-        <!-- Surah dropdown -->
-        <div class="input-group">
-          <label for="inp-surah">Which Surah?</label>
-          <select id="inp-surah" onchange="updateSurahHint()"></select>
-          <div id="surah-hint" class="surah-hint show">Al-Baqarah</div>
         </div>
 
         <!-- Full Surah toggle -->
@@ -1475,6 +1484,22 @@
 
         <p class="section-label">Set Up Your Batch</p>
 
+        <!-- Surah dropdown -->
+        <div class="input-group">
+          <label>Which Surah?</label>
+          <input type="hidden" id="bulk-surah" value="2">
+          <div class="custom-select-container" id="surah-container-bulk">
+            <div class="custom-select-trigger" onclick="toggleSurahDropdown('bulk', event)">
+              <span id="selected-surah-name-bulk">2. Al-Baqarah</span>
+              <span class="custom-select-arrow">▼</span>
+            </div>
+            <div class="custom-select-dropdown" id="surah-dropdown-bulk">
+              <input type="text" class="custom-select-search" id="surah-search-bulk" placeholder="Search surah number or name..." oninput="filterSurahs('bulk')" onclick="event.stopPropagation()">
+              <div class="custom-select-options" id="surah-options-bulk"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Reciter dropdown -->
         <div class="input-group">
           <label>Reciter</label>
@@ -1488,13 +1513,6 @@
               <div class="custom-select-options" id="reciter-options-bulk"></div>
             </div>
           </div>
-        </div>
-
-        <!-- Surah dropdown -->
-        <div class="input-group">
-          <label for="bulk-surah">Which Surah?</label>
-          <select id="bulk-surah" onchange="updateBulkSurahHint()"></select>
-          <div id="bulk-surah-hint" class="surah-hint show">Al-Baqarah</div>
         </div>
 
         <!-- Full Surah toggle -->
@@ -1684,6 +1702,8 @@ function toggleReciterDropdown(mode, event) {
 
   closeReciterDropdown('single');
   closeReciterDropdown('bulk');
+  closeSurahDropdown('single');
+  closeSurahDropdown('bulk');
 
   if (!isOpen) {
     container.classList.add('open');
@@ -1706,10 +1726,103 @@ function filterReciters(mode) {
   renderReciterOptions(mode, val);
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   SURAH SEARCHABLE DROPDOWN
+═══════════════════════════════════════════════════════════════ */
+let selectedSurahSingle = 2;
+let selectedSurahBulk   = 2;
+
+function renderSurahOptions(mode, filterText = "") {
+  const optionsContainer = document.getElementById(`surah-options-${mode}`);
+  if (!optionsContainer) return;
+
+  const currentSelected = mode === 'single' ? selectedSurahSingle : selectedSurahBulk;
+  const query = filterText.trim().toLowerCase();
+  const cleanQuery = query.replace(/[^a-z0-9]/g, '');
+
+  const filtered = Object.keys(SURAHS).filter(numStr => {
+    const num = parseInt(numStr, 10);
+    const name = SURAHS[num];
+    if (!query) return true;
+    const nameLower = name.toLowerCase();
+    const cleanName = nameLower.replace(/[^a-z0-9]/g, '');
+    return numStr.includes(query) || nameLower.includes(query) || (cleanQuery && cleanName.includes(cleanQuery));
+  });
+
+  optionsContainer.innerHTML = '';
+  if (filtered.length === 0) {
+    optionsContainer.innerHTML = `<div class="custom-select-no-results">No surahs found</div>`;
+    return;
+  }
+
+  filtered.forEach(numStr => {
+    const num = parseInt(numStr, 10);
+    const name = SURAHS[num];
+    const item = document.createElement('div');
+    item.className = `custom-select-option ${num === currentSelected ? 'selected' : ''}`;
+    item.textContent = `${num}. ${name}`;
+    item.onclick = (e) => {
+      e.stopPropagation();
+      selectSurah(mode, num);
+    };
+    optionsContainer.appendChild(item);
+  });
+}
+
+function selectSurah(mode, num) {
+  num = parseInt(num, 10);
+  const name = SURAHS[num] || `Surah ${num}`;
+  if (mode === 'single') {
+    selectedSurahSingle = num;
+    document.getElementById('selected-surah-name-single').textContent = `${num}. ${name}`;
+    document.getElementById('inp-surah').value = num;
+    updateSurahHint();
+  } else {
+    selectedSurahBulk = num;
+    document.getElementById('selected-surah-name-bulk').textContent = `${num}. ${name}`;
+    document.getElementById('bulk-surah').value = num;
+    updateBulkSurahHint();
+  }
+  closeSurahDropdown(mode);
+}
+
+function toggleSurahDropdown(mode, event) {
+  if (event) event.stopPropagation();
+  const container = document.getElementById(`surah-container-${mode}`);
+  const isOpen = container.classList.contains('open');
+
+  closeSurahDropdown('single');
+  closeSurahDropdown('bulk');
+  closeReciterDropdown('single');
+  closeReciterDropdown('bulk');
+
+  if (!isOpen) {
+    container.classList.add('open');
+    const searchInput = document.getElementById(`surah-search-${mode}`);
+    if (searchInput) {
+      searchInput.value = '';
+      renderSurahOptions(mode, '');
+      setTimeout(() => searchInput.focus(), 50);
+    }
+  }
+}
+
+function closeSurahDropdown(mode) {
+  const container = document.getElementById(`surah-container-${mode}`);
+  if (container) container.classList.remove('open');
+}
+
+function filterSurahs(mode) {
+  const val = document.getElementById(`surah-search-${mode}`).value;
+  renderSurahOptions(mode, val);
+}
+
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.custom-select-container')) {
     closeReciterDropdown('single');
     closeReciterDropdown('bulk');
+    closeSurahDropdown('single');
+    closeSurahDropdown('bulk');
   }
 });
 
@@ -1912,9 +2025,11 @@ function setOrientation(val) {
 function updateSurahHint() {
   const n    = parseInt(document.getElementById('inp-surah').value, 10);
   const hint = document.getElementById('surah-hint');
-  const name = SURAHS[n];
-  hint.textContent = name || '';
-  hint.classList.toggle('show', !!name);
+  if (hint) {
+    const name = SURAHS[n];
+    hint.textContent = name || '';
+    hint.classList.toggle('show', !!name);
+  }
   resetFullSurah('single');
 }
 
@@ -2052,22 +2167,12 @@ let batchId         = null;
 let bulkPollTimer   = null;
 let bulkChunkCount  = 0; // how many chunk rows we've built in the DOM
 
-/* Populate surah dropdowns & init reciters */
+/* Populate surah & reciter dropdowns */
 (function initDropdowns() {
   renderReciterOptions('single');
   renderReciterOptions('bulk');
-  ['inp-surah', 'bulk-surah'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    sel.innerHTML = '';
-    for (let i = 1; i <= 114; i++) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = `${i}. ${SURAHS[i]}`;
-      if (i === 2) opt.selected = true;
-      sel.appendChild(opt);
-    }
-  });
+  renderSurahOptions('single');
+  renderSurahOptions('bulk');
 })();
 
 /* Live hint — verses-per-video */
@@ -2083,8 +2188,10 @@ function updateVpvHint() {
 function updateBulkSurahHint() {
   const n    = +document.getElementById('bulk-surah').value;
   const hint = document.getElementById('bulk-surah-hint');
-  hint.textContent = SURAHS[n] || '';
-  hint.classList.toggle('show', !!SURAHS[n]);
+  if (hint) {
+    hint.textContent = SURAHS[n] || '';
+    hint.classList.toggle('show', !!SURAHS[n]);
+  }
   resetFullSurah('bulk');
 }
 
@@ -2415,17 +2522,13 @@ async function discoverVerse() {
 function generateDiscoveredVerse() {
   if (!discoveredVerseData) return;
   
-  const inpSurah = document.getElementById('inp-surah') || document.getElementById('surah');
+  selectSurah('single', discoveredVerseData.surah);
+
   const inpStart = document.getElementById('inp-start') || document.getElementById('verse');
   const inpEnd = document.getElementById('inp-end') || document.getElementById('verse');
   
-  if (inpSurah) inpSurah.value = discoveredVerseData.surah;
   if (inpStart) inpStart.value = discoveredVerseData.verse;
   if (inpEnd) inpEnd.value = discoveredVerseData.verse;
-  
-  if (typeof updateSurahHint === 'function') {
-    updateSurahHint();
-  }
   
   showTab('single');
   startGenerate();
