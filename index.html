@@ -82,12 +82,12 @@
       position: relative;
       z-index: 1;
       display: flex;
-      gap: 0;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 5px;
-      margin-bottom: 18px;
+      gap: 6px;
+      background: #111111;
+      border: 1px solid rgba(201,168,76,0.12);
+      border-radius: 99px;
+      padding: 6px;
+      margin: 0 auto 24px auto;
       width: 100%;
       max-width: 480px;
     }
@@ -96,25 +96,30 @@
       padding: 10px 16px;
       background: transparent;
       border: none;
-      border-radius: 10px;
+      border-radius: 99px;
       color: var(--muted);
       font-family: 'Inter', sans-serif;
       font-size: 0.82rem;
-      font-weight: 500;
-      letter-spacing: 0.06em;
+      font-weight: 600;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       cursor: pointer;
-      transition: background var(--transition), color var(--transition), box-shadow var(--transition);
+      white-space: nowrap;
+      transition: background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 7px;
     }
-    .tab-btn:hover { color: var(--gold-dim); }
-    .tab-btn.active {
-      background: linear-gradient(135deg, rgba(160,120,40,0.25), var(--gold-glow));
+    .tab-btn:hover:not(.active) {
       color: var(--gold);
-      box-shadow: 0 0 14px rgba(201,168,76,0.18);
+      background: rgba(201,168,76,0.06);
+    }
+    .tab-btn.active {
+      background: var(--gold);
+      color: #0A0A0A;
+      font-weight: 700;
+      box-shadow: 0 4px 18px rgba(201,168,76,0.35);
     }
 
     /* ── Card ────────────────────────────────────────────────── */
@@ -123,13 +128,12 @@
       z-index: 1;
       width: 100%;
       max-width: 480px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 20px;
+      background: #111111;
+      border: 1px solid rgba(201,168,76,0.12);
+      border-radius: 16px;
       box-shadow:
-        0 0 0 1px rgba(201,168,76,0.05),
-        0 24px 60px rgba(0,0,0,0.7),
-        0 0 40px var(--gold-glow);
+        0 24px 60px rgba(0,0,0,0.8),
+        0 0 35px rgba(201,168,76,0.04);
       overflow: hidden;
     }
 
@@ -137,7 +141,7 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
-    .card-body { padding: 28px 28px 24px; }
+    .card-body { padding: 28px; }
 
     /* ── Section headings inside card ────────────────────────── */
     .section-label {
@@ -146,8 +150,8 @@
       letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--gold);
-      opacity: 0.6;
-      margin-bottom: 16px;
+      opacity: 0.7;
+      margin-bottom: 20px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -156,48 +160,81 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: var(--border);
+      background: rgba(201,168,76,0.08);
     }
 
-    /* ── Inputs ──────────────────────────────────────────────── */
-    .input-group { margin-bottom: 18px; }
+    /* ── Section Dividers ────────────────────────────────────── */
+    .form-divider {
+      height: 1px;
+      background: rgba(201,168,76,0.08);
+      margin: 24px 0;
+    }
+
+    /* ── Inputs & Labels ─────────────────────────────────────── */
+    .input-group { margin-bottom: 24px; }
     .input-row { display: flex; gap: 14px; }
-    .input-row .input-group { flex: 1; }
+    .input-row .input-group { flex: 1; margin-bottom: 0; }
+
+    .verse-input-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .verse-input-row .input-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+    .verse-separator {
+      color: var(--gold);
+      opacity: 0.4;
+      font-size: 1.1rem;
+      font-weight: 300;
+      user-select: none;
+      margin-top: 22px;
+    }
 
     label {
-      display: block;
-      font-size: 0.74rem;
-      font-weight: 500;
-      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--gold);
+      opacity: 0.7;
       margin-bottom: 8px;
+    }
+    label span.lbl-icon {
+      font-size: 0.85rem;
+      opacity: 0.9;
     }
 
     input[type="number"],
     select {
       width: 100%;
-      padding: 11px 14px;
-      background: var(--input-bg);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 9px;
+      padding: 12px 14px;
+      background: #0D0D0D;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 10px;
       color: var(--text);
       font-family: 'Inter', sans-serif;
-      font-size: 1rem;
-      transition: var(--transition);
+      font-size: 0.95rem;
+      transition: border-color var(--transition), box-shadow var(--transition);
       -moz-appearance: textfield;
       appearance: none;
       -webkit-appearance: none;
     }
     select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7060' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A84C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 12px center;
+      background-position: right 14px center;
       padding-right: 36px;
       cursor: pointer;
     }
     select option {
-      background: #1a1a1a;
+      background: #0D0D0D;
       color: var(--text);
     }
     input[type="number"]::-webkit-inner-spin-button,
@@ -205,14 +242,14 @@
     input[type="number"]:focus,
     select:focus {
       outline: none;
-      border-color: var(--gold);
+      border-color: rgba(201,168,76,0.5);
       box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
     }
     input[type="number"]:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
       border-color: rgba(255,255,255,0.04);
-      background: rgba(0,0,0,0.2);
+      background: rgba(0,0,0,0.3);
     }
 
     .surah-hint {
@@ -226,6 +263,51 @@
     }
     .surah-hint.show { opacity: 1; }
 
+    /* ── Full Surah Toggle Pill Switch ───────────────────────── */
+    .toggle-pill-switch {
+      width: 100%;
+      padding: 4px;
+      background: #0D0D0D;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 12px;
+      display: flex;
+      cursor: pointer;
+      outline: none;
+      transition: border-color var(--transition);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+    }
+    .toggle-pill-switch:hover {
+      border-color: rgba(201,168,76,0.35);
+    }
+    .toggle-pill-opt {
+      flex: 1;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-align: center;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .toggle-pill-switch:not(.active) .opt-range {
+      background: var(--gold);
+      color: #0A0A0A;
+      box-shadow: 0 2px 10px rgba(201,168,76,0.35);
+    }
+    .toggle-pill-switch:not(.active) .opt-full {
+      background: transparent;
+      color: var(--muted);
+    }
+    .toggle-pill-switch.active .opt-range {
+      background: transparent;
+      color: var(--muted);
+    }
+    .toggle-pill-switch.active .opt-full {
+      background: var(--gold);
+      color: #0A0A0A;
+      box-shadow: 0 2px 10px rgba(201,168,76,0.35);
+    }
+
     /* ── Custom Searchable Reciter Select ───────────────────────── */
     .custom-select-container {
       position: relative;
@@ -233,47 +315,46 @@
     }
     .custom-select-trigger {
       width: 100%;
-      padding: 11px 14px;
-      background: var(--input-bg);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 9px;
+      padding: 12px 14px;
+      background: #0D0D0D;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 10px;
       color: var(--text);
       font-family: 'Inter', sans-serif;
-      font-size: 1rem;
+      font-size: 0.95rem;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: var(--transition);
+      transition: border-color var(--transition), box-shadow var(--transition);
     }
     .custom-select-trigger:hover {
-      border-color: var(--gold-dim);
+      border-color: rgba(201,168,76,0.35);
     }
     .custom-select-container.open .custom-select-trigger {
-      border-color: var(--gold);
+      border-color: rgba(201,168,76,0.5);
       box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
     }
     .custom-select-arrow {
-      font-size: 0.65rem;
-      color: var(--muted);
+      display: flex;
+      align-items: center;
       transition: transform var(--transition);
     }
     .custom-select-container.open .custom-select-arrow {
       transform: rotate(180deg);
-      color: var(--gold);
     }
     .custom-select-dropdown {
       display: none;
       position: absolute;
-      top: calc(100% + 4px);
+      top: calc(100% + 6px);
       left: 0;
       right: 0;
-      background: #141414;
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      background: #0D0D0D;
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 12px;
       z-index: 100;
       padding: 8px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.85), 0 0 15px rgba(201,168,76,0.1);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.9), 0 0 20px rgba(201,168,76,0.08);
       animation: fadeUp 0.2s ease;
     }
     .custom-select-container.open .custom-select-dropdown {
@@ -282,19 +363,19 @@
     }
     .custom-select-search {
       width: 100%;
-      padding: 8px 12px;
-      background: rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
+      padding: 9px 12px;
+      background: #070707;
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 8px;
       color: var(--text);
       font-family: 'Inter', sans-serif;
       font-size: 0.88rem;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       outline: none;
       transition: border-color var(--transition);
     }
     .custom-select-search:focus {
-      border-color: var(--gold);
+      border-color: rgba(201,168,76,0.5);
     }
     .custom-select-options {
       max-height: 180px;
@@ -311,7 +392,7 @@
       border-radius: 3px;
     }
     .custom-select-option {
-      padding: 8px 12px;
+      padding: 9px 12px;
       border-radius: 6px;
       font-size: 0.88rem;
       color: var(--text);
@@ -335,30 +416,57 @@
       text-align: center;
     }
 
-    /* ── Generate button ─────────────────────────────────────── */
+    /* ── Generate Button ─────────────────────────────────────── */
     .btn-generate {
       width: 100%;
-      margin-top: 8px;
-      padding: 13px 20px;
-      background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+      height: 52px;
+      margin-top: 24px;
+      padding: 0 20px;
+      background: #C9A84C;
       border: none;
-      border-radius: 9px;
-      color: #0a0a0a;
+      border-radius: 12px;
+      color: #0A0A0A;
       font-family: 'Inter', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-size: 0.88rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(201,168,76,0.25);
+      transition: transform var(--transition), box-shadow var(--transition), background-color var(--transition);
+    }
+    .btn-generate::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 100%
+      );
+      transform: skewX(-20deg);
+    }
+    .btn-generate:hover:not(:disabled)::before {
+      animation: shimmerSweep 0.85s ease-in-out;
+    }
+    @keyframes shimmerSweep {
+      0%   { left: -100%; }
+      100% { left: 200%; }
     }
     .btn-generate:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(201,168,76,0.4);
+      box-shadow: 0 8px 30px rgba(201,168,76,0.45);
+      background: #d4b456;
     }
     .btn-generate:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -441,33 +549,40 @@
     /* ── Orientation toggle ──────────────────────────────────── */
     .orientation-toggle {
       display: flex;
-      gap: 10px;
-      margin-bottom: 18px;
+      gap: 12px;
     }
     .btn-orient {
       flex: 1;
-      padding: 10px 12px;
-      background: var(--input-bg);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 9px;
+      padding: 13px 14px;
+      background: #0D0D0D;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 12px;
       color: var(--muted);
       font-family: 'Inter', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       font-weight: 500;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.03em;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       transition: border-color var(--transition), color var(--transition), box-shadow var(--transition), background var(--transition);
-      text-align: center;
     }
     .btn-orient:hover {
-      border-color: var(--gold-dim);
-      color: var(--gold-dim);
+      border-color: rgba(201,168,76,0.35);
+      color: var(--gold);
     }
     .btn-orient.active {
-      border-color: var(--gold);
-      color: var(--gold);
-      background: var(--gold-glow);
-      box-shadow: 0 0 12px rgba(201,168,76,0.2);
+      border-color: #C9A84C;
+      color: #C9A84C;
+      background: rgba(201,168,76,0.08);
+      box-shadow: 0 0 16px rgba(201,168,76,0.12);
+      font-weight: 600;
+    }
+    .btn-orient svg {
+      flex-shrink: 0;
+      stroke: currentColor;
     }
 
     /* ── Verses-per-video helper text ────────────────────────── */
@@ -1391,12 +1506,16 @@
 
         <!-- Surah dropdown -->
         <div class="input-group">
-          <label>Which Surah?</label>
+          <label><span class="lbl-icon">📖</span> Surah</label>
           <input type="hidden" id="inp-surah" value="2">
           <div class="custom-select-container" id="surah-container-single">
             <div class="custom-select-trigger" onclick="toggleSurahDropdown('single', event)">
               <span id="selected-surah-name-single">2. Al-Baqarah</span>
-              <span class="custom-select-arrow">▼</span>
+              <span class="custom-select-arrow">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 1.5L6 6.5L11 1.5" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
             </div>
             <div class="custom-select-dropdown" id="surah-dropdown-single">
               <input type="text" class="custom-select-search" id="surah-search-single" placeholder="Search surah number or name..." oninput="filterSurahs('single')" onclick="event.stopPropagation()">
@@ -1407,11 +1526,15 @@
 
         <!-- Reciter dropdown -->
         <div class="input-group">
-          <label>Reciter</label>
+          <label><span class="lbl-icon">🎙</span> Reciter</label>
           <div class="custom-select-container" id="reciter-container-single">
             <div class="custom-select-trigger" onclick="toggleReciterDropdown('single', event)">
               <span id="selected-reciter-name-single">Mishary Alafasy</span>
-              <span class="custom-select-arrow">▼</span>
+              <span class="custom-select-arrow">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 1.5L6 6.5L11 1.5" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
             </div>
             <div class="custom-select-dropdown" id="reciter-dropdown-single">
               <input type="text" class="custom-select-search" id="reciter-search-single" placeholder="Search reciter..." oninput="filterReciters('single')" onclick="event.stopPropagation()">
@@ -1422,36 +1545,48 @@
 
         <!-- Full Surah toggle -->
         <div class="input-group">
-          <button id="btn-full-single" type="button" class="btn-orient" style="width:100%;" onclick="toggleFullSurah('single')">
-            📖 Full Surah
+          <button id="btn-full-single" type="button" class="toggle-pill-switch" onclick="toggleFullSurah('single')">
+            <span class="toggle-pill-opt opt-range">Verse Range</span>
+            <span class="toggle-pill-opt opt-full">Full Surah</span>
           </button>
         </div>
 
         <!-- Start / End verse -->
-        <div class="input-row">
+        <div class="verse-input-row">
           <div class="input-group">
-            <label for="inp-start">Start Verse</label>
+            <label for="inp-start"><span class="lbl-icon">🔢</span> Start Verse</label>
             <input type="number" id="inp-start" value="255" min="1" autocomplete="off">
           </div>
+          <div class="verse-separator">→</div>
           <div class="input-group">
-            <label for="inp-end">End Verse</label>
+            <label for="inp-end"><span class="lbl-icon">🔢</span> End Verse</label>
             <input type="number" id="inp-end" value="255" min="1" autocomplete="off">
           </div>
         </div>
 
         <!-- Orientation toggle -->
-        <div>
-          <label>Orientation</label>
+        <div class="input-group">
+          <label><span class="lbl-icon">📐</span> Orientation</label>
           <div class="orientation-toggle" id="orient-toggle">
-            <button id="btn-horizontal" class="btn-orient active" onclick="setOrientation('horizontal')">🖥️ Horizontal (16:9)</button>
-            <button id="btn-vertical"   class="btn-orient"        onclick="setOrientation('vertical')"  >📱 Vertical (9:16)</button>
+            <button id="btn-horizontal" class="btn-orient active" onclick="setOrientation('horizontal')">
+              <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="18" height="12" rx="2" stroke-width="1.5"/>
+              </svg>
+              <span>Horizontal 16:9</span>
+            </button>
+            <button id="btn-vertical" class="btn-orient" onclick="setOrientation('vertical')">
+              <svg width="14" height="20" viewBox="0 0 14 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="12" height="18" rx="2" stroke-width="1.5"/>
+              </svg>
+              <span>Vertical 9:16</span>
+            </button>
           </div>
         </div>
 
         <!-- Button -->
         <button id="gen-btn" class="btn-generate" onclick="startGenerate()">
           <div class="btn-spinner"></div>
-          <span class="btn-label">Generate Video</span>
+          <span class="btn-label">✦ Generate Video</span>
         </button>
 
         <!-- Status -->
@@ -1486,12 +1621,16 @@
 
         <!-- Surah dropdown -->
         <div class="input-group">
-          <label>Which Surah?</label>
+          <label><span class="lbl-icon">📖</span> Surah</label>
           <input type="hidden" id="bulk-surah" value="2">
           <div class="custom-select-container" id="surah-container-bulk">
             <div class="custom-select-trigger" onclick="toggleSurahDropdown('bulk', event)">
               <span id="selected-surah-name-bulk">2. Al-Baqarah</span>
-              <span class="custom-select-arrow">▼</span>
+              <span class="custom-select-arrow">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 1.5L6 6.5L11 1.5" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
             </div>
             <div class="custom-select-dropdown" id="surah-dropdown-bulk">
               <input type="text" class="custom-select-search" id="surah-search-bulk" placeholder="Search surah number or name..." oninput="filterSurahs('bulk')" onclick="event.stopPropagation()">
@@ -1502,11 +1641,15 @@
 
         <!-- Reciter dropdown -->
         <div class="input-group">
-          <label>Reciter</label>
+          <label><span class="lbl-icon">🎙</span> Reciter</label>
           <div class="custom-select-container" id="reciter-container-bulk">
             <div class="custom-select-trigger" onclick="toggleReciterDropdown('bulk', event)">
               <span id="selected-reciter-name-bulk">Mishary Alafasy</span>
-              <span class="custom-select-arrow">▼</span>
+              <span class="custom-select-arrow">
+                <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 1.5L6 6.5L11 1.5" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
             </div>
             <div class="custom-select-dropdown" id="reciter-dropdown-bulk">
               <input type="text" class="custom-select-search" id="reciter-search-bulk" placeholder="Search reciter..." oninput="filterReciters('bulk')" onclick="event.stopPropagation()">
@@ -1517,36 +1660,48 @@
 
         <!-- Full Surah toggle -->
         <div class="input-group">
-          <button id="btn-full-bulk" type="button" class="btn-orient" style="width:100%;" onclick="toggleFullSurah('bulk')">
-            📖 Full Surah
+          <button id="btn-full-bulk" type="button" class="toggle-pill-switch" onclick="toggleFullSurah('bulk')">
+            <span class="toggle-pill-opt opt-range">Verse Range</span>
+            <span class="toggle-pill-opt opt-full">Full Surah</span>
           </button>
         </div>
 
         <!-- Verse range -->
-        <div class="input-row">
+        <div class="verse-input-row">
           <div class="input-group">
-            <label for="bulk-start">From Verse</label>
+            <label for="bulk-start"><span class="lbl-icon">🔢</span> From Verse</label>
             <input type="number" id="bulk-start" value="1" min="1" autocomplete="off">
           </div>
+          <div class="verse-separator">→</div>
           <div class="input-group">
-            <label for="bulk-end">To Verse</label>
+            <label for="bulk-end"><span class="lbl-icon">🔢</span> To Verse</label>
             <input type="number" id="bulk-end" value="10" min="1" autocomplete="off">
           </div>
         </div>
 
         <!-- Verses per video -->
         <div class="input-group">
-          <label for="bulk-vpv">How many verses in each video?</label>
+          <label for="bulk-vpv"><span class="lbl-icon">🎥</span> How many verses in each video?</label>
           <input type="number" id="bulk-vpv" value="1" min="1" autocomplete="off">
           <p class="field-hint" id="bulk-vpv-hint">Each video will contain 1 verse.</p>
         </div>
 
         <!-- Orientation -->
-        <div>
-          <label>Orientation</label>
+        <div class="input-group">
+          <label><span class="lbl-icon">📐</span> Orientation</label>
           <div class="orientation-toggle">
-            <button id="bulk-btn-h" class="btn-orient active" onclick="setBulkOrientation('horizontal')">🖥️ Horizontal (16:9)</button>
-            <button id="bulk-btn-v" class="btn-orient"        onclick="setBulkOrientation('vertical')"  >📱 Vertical (9:16)</button>
+            <button id="bulk-btn-h" class="btn-orient active" onclick="setBulkOrientation('horizontal')">
+              <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="18" height="12" rx="2" stroke-width="1.5"/>
+              </svg>
+              <span>Horizontal 16:9</span>
+            </button>
+            <button id="bulk-btn-v" class="btn-orient" onclick="setBulkOrientation('vertical')">
+              <svg width="14" height="20" viewBox="0 0 14 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="12" height="18" rx="2" stroke-width="1.5"/>
+              </svg>
+              <span>Vertical 9:16</span>
+            </button>
           </div>
         </div>
 
@@ -1597,7 +1752,8 @@
         <p class="section-label">AI VERSE DISCOVERY</p>
         
         <div class="input-group">
-          <textarea id="discover-input" rows="3" placeholder="e.g. verse about patience in hardship..."></textarea>
+          <label for="discover-input"><span class="lbl-icon">🔍</span> Topic or Theme</label>
+          <textarea id="discover-input" rows="3" placeholder="Describe a topic, emotion, or theme (e.g. 'verses about patience in hardship', 'mercy and forgiveness')..."></textarea>
         </div>
         
         <button id="discover-btn" class="btn-generate" onclick="discoverVerse()">
@@ -1611,10 +1767,22 @@
             <div id="discover-reason" class="discover-verse-reason"></div>
             <div id="discover-arabic" class="discover-arabic-preview"></div>
             
-            <label style="margin-top: 15px;">Orientation</label>
-            <div class="orientation-toggle" id="discover-orient-toggle">
-              <button id="discover-btn-h" class="btn-orient active" onclick="setOrientation('horizontal')">🖥️ Horizontal (16:9)</button>
-              <button id="discover-btn-v" class="btn-orient" onclick="setOrientation('vertical')">📱 Vertical (9:16)</button>
+            <div class="input-group" style="margin-top: 15px;">
+              <label><span class="lbl-icon">📐</span> Orientation</label>
+              <div class="orientation-toggle" id="discover-orient-toggle">
+                <button id="discover-btn-h" class="btn-orient active" onclick="setOrientation('horizontal')">
+                  <svg width="20" height="14" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="1" width="18" height="12" rx="2" stroke-width="1.5"/>
+                  </svg>
+                  <span>Horizontal 16:9</span>
+                </button>
+                <button id="discover-btn-v" class="btn-orient" onclick="setOrientation('vertical')">
+                  <svg width="14" height="20" viewBox="0 0 14 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1" y="1" width="12" height="18" rx="2" stroke-width="1.5"/>
+                  </svg>
+                  <span>Vertical 9:16</span>
+                </button>
+              </div>
             </div>
             
             <button id="discover-gen-btn" class="btn-generate" onclick="generateDiscoveredVerse()" style="margin-top: 20px;">
