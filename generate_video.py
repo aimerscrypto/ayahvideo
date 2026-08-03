@@ -166,7 +166,7 @@ def get_llm_split(english_text, num_chunks, arabic_chunks=None, frames=None):
             "label": "Fireworks",
             "url": "https://api.fireworks.ai/inference/v1/chat/completions",
             "key": fw_key,
-            "model": "accounts/fireworks/models/minimax-m3",
+            "model": "accounts/fireworks/models/deepseek-v4-flash-0731",
             "timeout": 120
         })
 
