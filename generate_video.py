@@ -7,6 +7,7 @@ import requests
 import json
 import shutil
 import unicodedata
+import random
 from PIL import Image, ImageDraw, ImageFont
 from PIL import features as pil_features
 
@@ -383,7 +384,7 @@ def render_image(arabic_text, english_text, output_img, ar_font_path=AMIRI_FONT,
 
     img.save(output_img)
 
-def generate_verse_video(surah, verse, orientation='horizontal', step_callback=None):
+def generate_verse_video(surah, verse, orientation='horizontal', step_callback=None, bg_offset=None):
     if step_callback: step_callback("Gathering verse text and audio...", 0)
     surah_name = fetch_surah_name(surah)
     download_fonts()
@@ -620,11 +621,14 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
         f"[bg_dark][captions_alpha]overlay=x=0:y=0:shortest=1,fps=30[out_v]"
     )
 
+    if bg_offset is None:
+        bg_offset = random.randint(0, 3500)
     cmd = [
         "ffmpeg", "-y",
         "-f", "concat",
         "-safe", "0",
         "-i", os.path.join(temp_dir, "concat.txt"),
+        "-ss", str(bg_offset),
         "-stream_loop", "-1",
         "-i", BG_VIDEO_URL,
         "-i", os.path.join(temp_dir, "temp_verse_audio.mp3"),
@@ -655,11 +659,11 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
             os.remove(stray)
 
     if success:
-        return output_filename
+        return output_filename, total_duration
     else:
         raise RuntimeError("Video generation failed during FFmpeg encoding.")
 
-def generate_verse_video_to_dir(surah, verse, output_dir, orientation='horizontal', step_callback=None):
+def generate_verse_video_to_dir(surah, verse, output_dir, orientation='horizontal', step_callback=None, bg_offset=None):
     """
     Renders a single verse video exactly like generate_verse_video(), but saves
     the final MP4 into *output_dir* with the clean filename pattern:
@@ -669,7 +673,7 @@ def generate_verse_video_to_dir(surah, verse, output_dir, orientation='horizonta
     os.makedirs(output_dir, exist_ok=True)
 
     # Re-use the existing pipeline; it saves to the default 'output/' folder.
-    raw_path = generate_verse_video(surah, verse, orientation=orientation, step_callback=step_callback)
+    raw_path, total_duration = generate_verse_video(surah, verse, orientation=orientation, step_callback=step_callback, bg_offset=bg_offset)
 
     # Build a clean destination name
     surah_name = fetch_surah_name(surah)
@@ -681,7 +685,7 @@ def generate_verse_video_to_dir(surah, verse, output_dir, orientation='horizonta
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     shutil.move(raw_path, dest_path)
     print(f"[bulk] Moved '{raw_path}' → '{dest_path}'")
-    return dest_path
+    return dest_path, total_duration
 
 
 def generate_range_video(surah, start_verse, end_verse, progress_callback=None, orientation='horizontal'):
@@ -695,6 +699,7 @@ def generate_range_video(surah, start_verse, end_verse, progress_callback=None, 
 
     verse_files = []
     total_verses = end_verse - start_verse + 1
+    current_bg_offset = random.randint(0, 3500)
 
     for i, verse in enumerate(range(start_verse, end_verse + 1)):
         verse_num = i + 1
@@ -708,8 +713,9 @@ def generate_range_video(surah, start_verse, end_verse, progress_callback=None, 
             progress_callback(verse_num, total_verses, verse, "Starting...", int((i / total_verses) * 100))
         print(f"\n=== Rendering verse {surah}:{verse} ({verse_num}/{total_verses}) ===")
         try:
-            verse_output = generate_verse_video(surah, verse, orientation=orientation, step_callback=verse_step_cb)
+            verse_output, verse_duration = generate_verse_video(surah, verse, orientation=orientation, step_callback=verse_step_cb, bg_offset=current_bg_offset)
             verse_files.append(verse_output)
+            current_bg_offset += verse_duration
         except Exception as e:
             print(f"ERROR rendering verse {surah}:{verse}: {e}")
             raise

@@ -53,7 +53,7 @@ def background_generate(job_id: str, surah: int, verse: int, orientation: str = 
             "step": "Gathering verse text and audio...", 
             "percentage": 0
         }
-        output_file = generate_verse_video(surah, verse, orientation=orientation, step_callback=step_cb)
+        output_file, _ = generate_verse_video(surah, verse, orientation=orientation, step_callback=step_cb)
         if output_file and os.path.exists(output_file):
             jobs[job_id] = {"status": "done", "file": output_file, "step": "Ready to download!", "percentage": 100}
         else:
@@ -133,7 +133,7 @@ def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_ve
         try:
             if chunk_start == chunk_end:
                 # Single-verse chunk — render directly into batch_dir
-                output_path = generate_verse_video_to_dir(
+                output_path, _ = generate_verse_video_to_dir(
                     surah, chunk_start, batch_dir,
                     orientation=orientation, step_callback=chunk_step_cb
                 )
@@ -148,15 +148,18 @@ def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_ve
 
                 verse_files = []
                 total_in_chunk = chunk_end - chunk_start + 1
+                current_bg_offset = random.randint(0, 3500)
                 for vi, verse in enumerate(range(chunk_start, chunk_end + 1)):
                     def verse_step_cb(step_str, pct, _vi=vi, _idx=idx):
                         overall = int((_vi + pct / 100.0) / total_in_chunk * 100)
                         chunk_step_cb(f"Verse {_vi + 1}/{total_in_chunk}: {step_str}", overall)
 
-                    vpath = generate_verse_video_to_dir(
+                    vpath, vdur = generate_verse_video_to_dir(
                         surah, verse, chunk_temp_dir,
-                        orientation=orientation, step_callback=verse_step_cb
+                        orientation=orientation, step_callback=verse_step_cb,
+                        bg_offset=current_bg_offset
                     )
+                    current_bg_offset += vdur
                     verse_files.append(vpath)
 
                 # FFmpeg-concat the individual verse videos
