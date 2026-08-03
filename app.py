@@ -27,12 +27,14 @@ class GenerateRequest(BaseModel):
     surah: int
     verse: int
     orientation: str = 'horizontal'
+    reciter: str = 'Alafasy_128kbps'
 
 class GenerateRangeRequest(BaseModel):
     surah: int
     start_verse: int
     end_verse: int
     orientation: str = 'horizontal'
+    reciter: str = 'Alafasy_128kbps'
 
 class GenerateBulkRequest(BaseModel):
     surah: int
@@ -40,8 +42,9 @@ class GenerateBulkRequest(BaseModel):
     end_verse: int
     verses_per_video: int
     orientation: str = 'horizontal'
+    reciter: str = 'Alafasy_128kbps'
 
-def background_generate(job_id: str, surah: int, verse: int, orientation: str = 'horizontal'):
+def background_generate(job_id: str, surah: int, verse: int, orientation: str = 'horizontal', reciter: str = 'Alafasy_128kbps'):
     def step_cb(step_str, pct):
         if job_id in jobs:
             jobs[job_id]["step"] = step_str
@@ -53,7 +56,7 @@ def background_generate(job_id: str, surah: int, verse: int, orientation: str = 
             "step": "Gathering verse text and audio...", 
             "percentage": 0
         }
-        output_file, _ = generate_verse_video(surah, verse, orientation=orientation, step_callback=step_cb)
+        output_file, _ = generate_verse_video(surah, verse, orientation=orientation, step_callback=step_cb, reciter=reciter)
         if output_file and os.path.exists(output_file):
             jobs[job_id] = {"status": "done", "file": output_file, "step": "Ready to download!", "percentage": 100}
         else:
@@ -61,7 +64,7 @@ def background_generate(job_id: str, surah: int, verse: int, orientation: str = 
     except Exception as e:
         jobs[job_id] = {"status": "error", "message": str(e)}
 
-def background_generate_range(job_id: str, surah: int, start_verse: int, end_verse: int, orientation: str = 'horizontal'):
+def background_generate_range(job_id: str, surah: int, start_verse: int, end_verse: int, orientation: str = 'horizontal', reciter: str = 'Alafasy_128kbps'):
     total = end_verse - start_verse + 1
 
     def progress_callback(verse_num, total_verses, verse, step_str="Rendering...", pct=0):
@@ -85,7 +88,7 @@ def background_generate_range(job_id: str, surah: int, start_verse: int, end_ver
             "step": "Initializing...",
             "percentage": 0
         }
-        output_file = generate_range_video(surah, start_verse, end_verse, progress_callback, orientation=orientation)
+        output_file = generate_range_video(surah, start_verse, end_verse, progress_callback, orientation=orientation, reciter=reciter)
         if output_file and os.path.exists(output_file):
             jobs[job_id] = {"status": "done", "file": output_file, "step": "Ready to download!", "percentage": 100}
         else:
@@ -95,7 +98,7 @@ def background_generate_range(job_id: str, surah: int, start_verse: int, end_ver
 
 
 def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_verse: int,
-                              verses_per_video: int, orientation: str = 'horizontal'):
+                              verses_per_video: int, orientation: str = 'horizontal', reciter: str = 'Alafasy_128kbps'):
     """Background task that splits a verse range into chunks and renders each as a separate MP4."""
 
     # ── 1. Build the list of (chunk_start, chunk_end) pairs ──────────────────
@@ -137,12 +140,13 @@ def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_ve
                 # Single-verse chunk — render directly into batch_dir
                 output_path, _ = generate_verse_video_to_dir(
                     surah, chunk_start, batch_dir,
-                    orientation=orientation, step_callback=chunk_step_cb
+                    orientation=orientation, step_callback=chunk_step_cb,
+                    reciter=reciter
                 )
             else:
                 # Multi-verse chunk — generate each verse then merge them
                 from generate_video import generate_range_video, fetch_surah_name
-                import shutil, subprocess
+                import shutil, subprocess, random
 
                 # Render individual verse videos into a temporary sub-folder
                 chunk_temp_dir = os.path.join(batch_dir, f"_chunk_temp_{chunk_start}_{chunk_end}")
@@ -159,7 +163,7 @@ def background_generate_bulk(batch_id: str, surah: int, start_verse: int, end_ve
                     vpath, vdur = generate_verse_video_to_dir(
                         surah, verse, chunk_temp_dir,
                         orientation=orientation, step_callback=verse_step_cb,
-                        bg_offset=current_bg_offset
+                        bg_offset=current_bg_offset, reciter=reciter
                     )
                     current_bg_offset += vdur
                     verse_files.append(vpath)
@@ -366,7 +370,7 @@ Rules:
 async def generate_endpoint(req: GenerateRequest, background_tasks: BackgroundTasks):
     job_id = str(uuid.uuid4())
     jobs[job_id] = {"status": "pending"}
-    background_tasks.add_task(background_generate, job_id, req.surah, req.verse, req.orientation)
+    background_tasks.add_task(background_generate, job_id, req.surah, req.verse, req.orientation, req.reciter)
     return {"job_id": job_id}
 
 @app.post("/generate-range")
@@ -375,7 +379,7 @@ async def generate_range_endpoint(req: GenerateRangeRequest, background_tasks: B
         raise HTTPException(status_code=400, detail="start_verse must be <= end_verse")
     job_id = str(uuid.uuid4())
     jobs[job_id] = {"status": "pending"}
-    background_tasks.add_task(background_generate_range, job_id, req.surah, req.start_verse, req.end_verse, req.orientation)
+    background_tasks.add_task(background_generate_range, job_id, req.surah, req.start_verse, req.end_verse, req.orientation, req.reciter)
     return {"job_id": job_id}
 
 @app.post("/generate-bulk")
@@ -390,7 +394,7 @@ async def generate_bulk_endpoint(req: GenerateBulkRequest, background_tasks: Bac
     background_tasks.add_task(
         background_generate_bulk,
         batch_id, req.surah, req.start_verse, req.end_verse,
-        req.verses_per_video, req.orientation
+        req.verses_per_video, req.orientation, req.reciter
     )
     return {"batch_id": batch_id}
 

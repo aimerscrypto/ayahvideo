@@ -226,6 +226,115 @@
     }
     .surah-hint.show { opacity: 1; }
 
+    /* ── Custom Searchable Reciter Select ───────────────────────── */
+    .custom-select-container {
+      position: relative;
+      width: 100%;
+    }
+    .custom-select-trigger {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--input-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition);
+    }
+    .custom-select-trigger:hover {
+      border-color: var(--gold-dim);
+    }
+    .custom-select-container.open .custom-select-trigger {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+    .custom-select-arrow {
+      font-size: 0.65rem;
+      color: var(--muted);
+      transition: transform var(--transition);
+    }
+    .custom-select-container.open .custom-select-arrow {
+      transform: rotate(180deg);
+      color: var(--gold);
+    }
+    .custom-select-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #141414;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      z-index: 100;
+      padding: 8px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.85), 0 0 15px rgba(201,168,76,0.1);
+      animation: fadeUp 0.2s ease;
+    }
+    .custom-select-container.open .custom-select-dropdown {
+      display: flex;
+      flex-direction: column;
+    }
+    .custom-select-search {
+      width: 100%;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      margin-bottom: 6px;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .custom-select-search:focus {
+      border-color: var(--gold);
+    }
+    .custom-select-options {
+      max-height: 180px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .custom-select-options::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-select-options::-webkit-scrollbar-thumb {
+      background: rgba(201,168,76,0.25);
+      border-radius: 3px;
+    }
+    .custom-select-option {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .custom-select-option:hover {
+      background: rgba(201,168,76,0.15);
+      color: var(--gold);
+    }
+    .custom-select-option.selected {
+      background: rgba(201,168,76,0.22);
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .custom-select-no-results {
+      padding: 10px 12px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+      text-align: center;
+    }
+
     /* ── Generate button ─────────────────────────────────────── */
     .btn-generate {
       width: 100%;
@@ -1280,6 +1389,21 @@
     <div id="panel-single" class="tab-panel active">
       <div class="card-body">
 
+        <!-- Reciter dropdown -->
+        <div class="input-group">
+          <label>Reciter</label>
+          <div class="custom-select-container" id="reciter-container-single">
+            <div class="custom-select-trigger" onclick="toggleReciterDropdown('single', event)">
+              <span id="selected-reciter-name-single">Mishary Alafasy</span>
+              <span class="custom-select-arrow">▼</span>
+            </div>
+            <div class="custom-select-dropdown" id="reciter-dropdown-single">
+              <input type="text" class="custom-select-search" id="reciter-search-single" placeholder="Search reciter..." oninput="filterReciters('single')" onclick="event.stopPropagation()">
+              <div class="custom-select-options" id="reciter-options-single"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Surah dropdown -->
         <div class="input-group">
           <label for="inp-surah">Which Surah?</label>
@@ -1350,6 +1474,21 @@
       <div class="card-body">
 
         <p class="section-label">Set Up Your Batch</p>
+
+        <!-- Reciter dropdown -->
+        <div class="input-group">
+          <label>Reciter</label>
+          <div class="custom-select-container" id="reciter-container-bulk">
+            <div class="custom-select-trigger" onclick="toggleReciterDropdown('bulk', event)">
+              <span id="selected-reciter-name-bulk">Mishary Alafasy</span>
+              <span class="custom-select-arrow">▼</span>
+            </div>
+            <div class="custom-select-dropdown" id="reciter-dropdown-bulk">
+              <input type="text" class="custom-select-search" id="reciter-search-bulk" placeholder="Search reciter..." oninput="filterReciters('bulk')" onclick="event.stopPropagation()">
+              <div class="custom-select-options" id="reciter-options-bulk"></div>
+            </div>
+          </div>
+        </div>
 
         <!-- Surah dropdown -->
         <div class="input-group">
@@ -1479,7 +1618,103 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   SURAH DATA
+   RECITERS DATA & CUSTOM SEARCHABLE DROPDOWN
+═══════════════════════════════════════════════════════════════ */
+const RECITERS = [
+  { name: "Mishary Alafasy", folder: "Alafasy_128kbps" },
+  { name: "Abdul Basit Murattal", folder: "Abdul_Basit_Murattal_192kbps" },
+  { name: "Abdul Basit Mujawwad", folder: "Abdul_Basit_Mujawwad_128kbps" },
+  { name: "Abdurrahmaan As-Sudais", folder: "Abdurrahmaan_As-Sudais_192kbps" },
+  { name: "Abu Bakr Ash-Shaatree", folder: "Abu_Bakr_Ash-Shaatree_128kbps" },
+  { name: "Abdullah Basfar", folder: "Abdullah_Basfar_192kbps" },
+  { name: "Maher Al-Muaiqly", folder: "MaherAlMuaiqly128kbps" },
+  { name: "Hani Rifai", folder: "Hani_Rifai_192kbps" },
+  { name: "Yasser Ad-Dussary", folder: "Dussary_128kbps" },
+  { name: "Al Husary", folder: "Husary_128kbps" },
+  { name: "Al Minshawy Murattal", folder: "Minshawy_Murattal_128kbps" },
+  { name: "Muhammad Ayyoub", folder: "Muhammad_Ayyoub_128kbps" },
+  { name: "Muhammad Jibreel", folder: "Muhammad_Jibreel_128kbps" },
+  { name: "Saood Ash-Shuraym", folder: "Shuraym_128kbps" },
+  { name: "Nasser Alqatami", folder: "Nasser_Alqatami_128kbps" },
+];
+
+let selectedReciterSingle = "Alafasy_128kbps";
+let selectedReciterBulk   = "Alafasy_128kbps";
+
+function renderReciterOptions(mode, filterText = "") {
+  const optionsContainer = document.getElementById(`reciter-options-${mode}`);
+  if (!optionsContainer) return;
+
+  const currentSelected = mode === 'single' ? selectedReciterSingle : selectedReciterBulk;
+  const filtered = RECITERS.filter(r => r.name.toLowerCase().includes(filterText.toLowerCase()));
+
+  optionsContainer.innerHTML = '';
+  if (filtered.length === 0) {
+    optionsContainer.innerHTML = `<div class="custom-select-no-results">No reciters found</div>`;
+    return;
+  }
+
+  filtered.forEach(r => {
+    const item = document.createElement('div');
+    item.className = `custom-select-option ${r.folder === currentSelected ? 'selected' : ''}`;
+    item.textContent = r.name;
+    item.onclick = (e) => {
+      e.stopPropagation();
+      selectReciter(mode, r.folder, r.name);
+    };
+    optionsContainer.appendChild(item);
+  });
+}
+
+function selectReciter(mode, folder, name) {
+  if (mode === 'single') {
+    selectedReciterSingle = folder;
+    document.getElementById('selected-reciter-name-single').textContent = name;
+  } else {
+    selectedReciterBulk = folder;
+    document.getElementById('selected-reciter-name-bulk').textContent = name;
+  }
+  closeReciterDropdown(mode);
+}
+
+function toggleReciterDropdown(mode, event) {
+  if (event) event.stopPropagation();
+  const container = document.getElementById(`reciter-container-${mode}`);
+  const isOpen = container.classList.contains('open');
+
+  closeReciterDropdown('single');
+  closeReciterDropdown('bulk');
+
+  if (!isOpen) {
+    container.classList.add('open');
+    const searchInput = document.getElementById(`reciter-search-${mode}`);
+    if (searchInput) {
+      searchInput.value = '';
+      renderReciterOptions(mode, '');
+      setTimeout(() => searchInput.focus(), 50);
+    }
+  }
+}
+
+function closeReciterDropdown(mode) {
+  const container = document.getElementById(`reciter-container-${mode}`);
+  if (container) container.classList.remove('open');
+}
+
+function filterReciters(mode) {
+  const val = document.getElementById(`reciter-search-${mode}`).value;
+  renderReciterOptions(mode, val);
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.custom-select-container')) {
+    closeReciterDropdown('single');
+    closeReciterDropdown('bulk');
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   SURAHS DATA
 ═══════════════════════════════════════════════════════════════ */
 const SURAHS = {
   1:"Al-Fatihah",2:"Al-Baqarah",3:"Ali 'Imran",4:"An-Nisa",5:"Al-Ma'idah",
@@ -1723,13 +1958,13 @@ async function startGenerate() {
       res = await fetch('/generate-range', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ surah, start_verse: start, end_verse: end, orientation: selectedOrientation })
+        body: JSON.stringify({ surah, start_verse: start, end_verse: end, orientation: selectedOrientation, reciter: selectedReciterSingle })
       });
     } else {
       res = await fetch('/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ surah, verse: start, orientation: selectedOrientation })
+        body: JSON.stringify({ surah, verse: start, orientation: selectedOrientation, reciter: selectedReciterSingle })
       });
     }
     const data = await res.json();
@@ -1817,8 +2052,10 @@ let batchId         = null;
 let bulkPollTimer   = null;
 let bulkChunkCount  = 0; // how many chunk rows we've built in the DOM
 
-/* Populate surah dropdowns */
-(function buildSurahDropdowns() {
+/* Populate surah dropdowns & init reciters */
+(function initDropdowns() {
+  renderReciterOptions('single');
+  renderReciterOptions('bulk');
   ['inp-surah', 'bulk-surah'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -2064,7 +2301,8 @@ async function startBulkGenerate() {
         start_verse: start,
         end_verse: end,
         verses_per_video: vpv,
-        orientation: bulkOrientation
+        orientation: bulkOrientation,
+        reciter: selectedReciterBulk
       })
     });
     const data = await res.json();

@@ -112,10 +112,10 @@ def fetch_verse_segments(surah, verse):
 
     return None, None, []
 
-def download_verse_audio(surah, verse, dest_path):
+def download_verse_audio(surah, verse, dest_path, reciter="Alafasy_128kbps"):
     """Download the per-verse MP3 from everyayah.com (SSSAAA format) and save to dest_path."""
     filename = f"{str(surah).zfill(3)}{str(verse).zfill(3)}.mp3"
-    url = f"https://everyayah.com/data/Alafasy_128kbps/{filename}"
+    url = f"https://everyayah.com/data/{reciter}/{filename}"
     print(f"Downloading verse audio from: {url}")
     r = requests.get(url, allow_redirects=True, timeout=60)
     if r.status_code != 200:
@@ -384,7 +384,7 @@ def render_image(arabic_text, english_text, output_img, ar_font_path=AMIRI_FONT,
 
     img.save(output_img)
 
-def generate_verse_video(surah, verse, orientation='horizontal', step_callback=None, bg_offset=None, is_final_verse=True):
+def generate_verse_video(surah, verse, orientation='horizontal', step_callback=None, bg_offset=None, is_final_verse=True, reciter="Alafasy_128kbps"):
     if step_callback: step_callback("Gathering verse text and audio...", 0)
     surah_name = fetch_surah_name(surah)
     download_fonts()
@@ -570,7 +570,7 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
 
     # Download per-verse audio
     temp_audio = os.path.join(temp_dir, "temp_verse_audio.mp3")
-    download_verse_audio(surah, verse, temp_audio)
+    download_verse_audio(surah, verse, temp_audio, reciter=reciter)
 
     # Fetch surah title image once before the rendering loop
     surah_img = None
@@ -665,7 +665,7 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
     else:
         raise RuntimeError("Video generation failed during FFmpeg encoding.")
 
-def generate_verse_video_to_dir(surah, verse, output_dir, orientation='horizontal', step_callback=None, bg_offset=None):
+def generate_verse_video_to_dir(surah, verse, output_dir, orientation='horizontal', step_callback=None, bg_offset=None, reciter="Alafasy_128kbps"):
     """
     Renders a single verse video exactly like generate_verse_video(), but saves
     the final MP4 into *output_dir* with the clean filename pattern:
@@ -675,7 +675,7 @@ def generate_verse_video_to_dir(surah, verse, output_dir, orientation='horizonta
     os.makedirs(output_dir, exist_ok=True)
 
     # Re-use the existing pipeline; it saves to the default 'output/' folder.
-    raw_path, total_duration = generate_verse_video(surah, verse, orientation=orientation, step_callback=step_callback, bg_offset=bg_offset)
+    raw_path, total_duration = generate_verse_video(surah, verse, orientation=orientation, step_callback=step_callback, bg_offset=bg_offset, reciter=reciter)
 
     # Build a clean destination name
     surah_name = fetch_surah_name(surah)
@@ -690,7 +690,7 @@ def generate_verse_video_to_dir(surah, verse, output_dir, orientation='horizonta
     return dest_path, total_duration
 
 
-def generate_range_video(surah, start_verse, end_verse, progress_callback=None, orientation='horizontal'):
+def generate_range_video(surah, start_verse, end_verse, progress_callback=None, orientation='horizontal', reciter="Alafasy_128kbps"):
     """Render each verse in [start_verse, end_verse] individually then concatenate into one MP4."""
     surah_name = fetch_surah_name(surah)
     download_fonts()
@@ -721,7 +721,7 @@ def generate_range_video(surah, start_verse, end_verse, progress_callback=None, 
             verse_output, verse_duration = generate_verse_video(
                 surah, verse, orientation=orientation,
                 step_callback=verse_step_cb, bg_offset=current_bg_offset,
-                is_final_verse=is_final_verse
+                is_final_verse=is_final_verse, reciter=reciter
             )
             verse_files.append(verse_output)
             current_bg_offset += verse_duration
