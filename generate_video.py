@@ -384,7 +384,7 @@ def render_image(arabic_text, english_text, output_img, ar_font_path=AMIRI_FONT,
 
     img.save(output_img)
 
-def generate_verse_video(surah, verse, orientation='horizontal', step_callback=None, bg_offset=None):
+def generate_verse_video(surah, verse, orientation='horizontal', step_callback=None, bg_offset=None, is_final_verse=True):
     if step_callback: step_callback("Gathering verse text and audio...", 0)
     surah_name = fetch_surah_name(surah)
     download_fonts()
@@ -608,7 +608,9 @@ def generate_verse_video(surah, verse, orientation='horizontal', step_callback=N
 
     # FFmpeg: concat images + per-verse audio
     print("Rendering final concatenated video...")
-    if step_callback: step_callback("Polishing and saving final video...", 75)
+    if step_callback:
+        step_msg = "Polishing and saving final video..." if is_final_verse else "Rendering verse..."
+        step_callback(step_msg, 75)
     if orientation == 'vertical':
         w, h = 1080, 1920
     else:
@@ -703,9 +705,12 @@ def generate_range_video(surah, start_verse, end_verse, progress_callback=None, 
 
     for i, verse in enumerate(range(start_verse, end_verse + 1)):
         verse_num = i + 1
+        is_final_verse = (verse_num == total_verses)
         
         def verse_step_cb(step_str, pct):
-            overall_pct = int(((i + (pct / 100.0)) / total_verses) * 100)
+            if step_str == "Polishing and saving final video..." and not is_final_verse:
+                step_str = "Rendering verse..."
+            overall_pct = int((i / total_verses) * 100)
             if progress_callback:
                 progress_callback(verse_num, total_verses, verse, step_str, overall_pct)
 
@@ -713,7 +718,11 @@ def generate_range_video(surah, start_verse, end_verse, progress_callback=None, 
             progress_callback(verse_num, total_verses, verse, "Starting...", int((i / total_verses) * 100))
         print(f"\n=== Rendering verse {surah}:{verse} ({verse_num}/{total_verses}) ===")
         try:
-            verse_output, verse_duration = generate_verse_video(surah, verse, orientation=orientation, step_callback=verse_step_cb, bg_offset=current_bg_offset)
+            verse_output, verse_duration = generate_verse_video(
+                surah, verse, orientation=orientation,
+                step_callback=verse_step_cb, bg_offset=current_bg_offset,
+                is_final_verse=is_final_verse
+            )
             verse_files.append(verse_output)
             current_bg_offset += verse_duration
         except Exception as e:

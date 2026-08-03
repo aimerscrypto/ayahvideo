@@ -1708,7 +1708,7 @@ async function startGenerate() {
   document.getElementById('gen-btn').classList.add('loading');
 
   fakeProgressTimer = setInterval(() => {
-    let targetCap = Math.min(99, realPercentage + 24);
+    let targetCap = Math.min(99, realPercentage);
     if (visualPercentage < targetCap) {
       visualPercentage += 0.2;
       document.getElementById('progress-bar').style.width = visualPercentage + '%';
@@ -1759,9 +1759,11 @@ async function pollStatus() {
         realPercentage = data.percentage;
         if (visualPercentage < realPercentage) visualPercentage = realPercentage;
       } else if (data.total_verses > 0) {
-        realPercentage = Math.round((data.verse_num / data.total_verses) * 100);
+        const completed = data.completed_verses !== undefined ? data.completed_verses : Math.max(0, data.verse_num - 1);
+        realPercentage = Math.round((completed / data.total_verses) * 100);
         if (visualPercentage < realPercentage) visualPercentage = realPercentage;
       }
+      document.getElementById('progress-bar').style.width = visualPercentage + '%';
     } else if (data.status === 'done') {
       clearInterval(pollTimer);
       if (fakeProgressTimer) clearInterval(fakeProgressTimer);

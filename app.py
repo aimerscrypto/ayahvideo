@@ -69,6 +69,7 @@ def background_generate_range(job_id: str, surah: int, start_verse: int, end_ver
             "status": "rendering",
             "message": f"Rendering verse {verse_num} of {total_verses} ({surah}:{verse})",
             "verse_num": verse_num,
+            "completed_verses": max(0, verse_num - 1),
             "total_verses": total_verses,
             "step": f"Verse {verse_num}/{total_verses}: {step_str}",
             "percentage": pct
@@ -79,6 +80,7 @@ def background_generate_range(job_id: str, surah: int, start_verse: int, end_ver
             "status": "rendering",
             "message": f"Starting render of {total} verses...",
             "verse_num": 0,
+            "completed_verses": 0,
             "total_verses": total,
             "step": "Initializing...",
             "percentage": 0
